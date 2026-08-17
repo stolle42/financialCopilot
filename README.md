@@ -16,8 +16,6 @@ Built for EUR / `de-DE` and the quirks of German bank exports — `;` delimiters
 
 ## Scope
 
-Eight features, cut down from a much larger list (preserved in [`extendedProject/`](extendedProject/)):
-
 1. Accounts with computed balances
 2. Transaction CRUD + quick-add
 3. CSV import with a saved per-bank mapping profile
@@ -31,12 +29,14 @@ Plus a ledger for fixing things after the fact.
 
 Explicitly **not** in v1: rules engine, transfer pairing, recurring detection, multi-currency, sign-in, phone access. Each is listed in [`FEATURES.md`](FEATURES.md) §10 with what it would cost to add back.
 
+A larger list of features has been preserved in [`extendedProject/`](extendedProject/):
+
 ## How data gets in
 
 Two paths, deliberately asymmetric:
 
-- **Manual entry** writes one categorized row directly. There is nothing to review in a row you typed yourself.
 - **CSV import** parses into a staging table, and you categorize every row in the review queue before committing. Nothing reaches the ledger unreviewed, a bad mapping profile is caught before the first write, and an interrupted batch resumes where you left it.
+- **Manual entry** writes one categorized row directly. There is nothing to review in a row you typed yourself, except if a user explicitly asks for it.
 
 ---
 
