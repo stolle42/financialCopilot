@@ -15,7 +15,8 @@ flowchart TD
     subgraph STAGE1 ["1 · Input"]
         M["Manual entry<br/>categorized as you type"]
         C["CSV file"] --> P["Import pipeline<br/>sniff · map · dedup"]
-        P --> S["import_staged_rows<br/>nothing counted yet"]
+        M -. optional .-> S["import_staged_rows<br/>nothing counted yet"]
+        P --> S
         S --> R["Review queue<br/>categorize every row"]
     end
 
@@ -32,7 +33,6 @@ flowchart TD
     end
 
     M --> T
-    M -. optional .-> S
     R --> T
     T -. references .-> CAT
     T -. references .-> ACC
