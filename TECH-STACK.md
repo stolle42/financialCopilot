@@ -251,7 +251,10 @@ DATABASE_PATH=~/.financial-copilot/app.db
 BASE_CURRENCY=EUR
 LOCALE=de-DE
 TZ=Europe/Berlin
+MANUAL_ENTRY_REVIEW=false   # true routes quick-add through the review queue
 ```
+
+There is no settings screen (`FEATURES.md` §1), so this file *is* the settings. A deliberate trade: these are values you set once, and a UI for them would cost more than editing a line and restarting.
 
 Two setup steps that are easy to skip and expensive to skip:
 

@@ -25,11 +25,11 @@ Man-hour estimates for the eight-feature scope in `FEATURES.md`, plus the cost o
 | Feature 2 — Transactions + quick-add | 10 – 15 | 4% |
 | Ledger (support; builds the shared categorization component) | 25 – 40 | 11% |
 | Feature 6 — Categories | 11 – 17 | 5% |
-| **Features 3 + 4 + 5 — CSV import, dedup, review queue** | **92 – 152** | **43%** |
-| Feature 7 — Monthly overview | 32 – 46 | 14% |
+| **Features 3 + 4 + 5 — CSV import, dedup, review queue** | **97 – 160** | **44%** |
+| Feature 7 — Monthly overview | 32 – 46 | 13% |
 | Feature 8 — Three health metrics | 7 – 10 | 3% |
 | Cross-cutting (export, backups, states, E2E) | 19 – 31 | 9% |
-| **Total** | **220 – 350** | |
+| **Total** | **225 – 358** | |
 
 At 10 focused hours a week that is **5–8 months**. At 20, **3–4 months**.
 
@@ -90,7 +90,7 @@ The categorization component is the one worth protecting. Its full cost sits in 
 
 Merge and delete-with-reassignment were P1 in the original list and were promoted into v1. Together they are ~7h and you will want them in week two, because the seeded taxonomy is a guess about someone else's spending.
 
-### Features 3 + 4 + 5 — CSV import, dedup and the review queue — 92–152h
+### Features 3 + 4 + 5 — CSV import, dedup and the review queue — 97–160h
 
 The monster. Broken down because a single number here is useless.
 
@@ -107,6 +107,7 @@ The monster. Broken down because a single number here is useless.
 | **Review queue screen**: summary header, counterparty-sorted rows, per-row skip, resolve-all gate, Unklar friction | 14 – 22 |
 | Commit: one transaction, staging cleared, `ON CONFLICT DO NOTHING` | 5 – 8 |
 | Undo batch + recent-imports list (committed and in-review) | 6 – 10 |
+| `MANUAL_ENTRY_REVIEW` branch: staged-row producer, pending-entries list, `CHECK` constraint | 5 – 8 |
 | Staging-isolation + idempotency + undo tests | 6 – 10 |
 | **Iterating against real bank fixtures until they parse** | **10 – 20** |
 
@@ -153,7 +154,7 @@ Ordered by likelihood of being built. Full descriptions in `FEATURES.md` §10.
 
 | Feature | Hours | Why it is deferred |
 |---|---:|---|
-| **Learned counterparty→category map** | 8 – 12 | Not needed until you have felt the chore. One table keyed on normalized counterparty, upserted whenever you categorize, applied at staging so review-queue rows arrive pre-filled — turning the queue from typing into confirming. Removes most of `RISKS.md` R2 for ~1.5 days. **Build this the moment the second import feels worse than the first** — the highest-value deferred item by a wide margin. |
+| **Learned counterparty→category map** | 8 – 12 | Not needed until you have felt the chore. One table keyed on normalized counterparty, upserted whenever you categorize, applied at staging so review-queue rows arrive pre-filled — turning the queue from typing into confirming. Removes most of `RISKS.md` R2 for about a day. **Build this the moment the second import feels worse than the first** — the highest-value deferred item by a wide margin. |
 | **Transfer model** | 20 – 28 | Cut to reach a working app sooner, accepting that savings rate reads high (`ARCHITECTURE.md` §3.2). The manual Umbuchung workaround is free, and the review queue's counterparty sort puts both legs of a transfer next to each other, which is the easiest place to catch them. A one-hour net-to-zero banner check is available as an interim guard, which is why the full 20–28h can wait. |
 | **Re-parse a batch** | 6 – 10 | The raw rows are already stored for exactly this, so only the action is missing. Deferred because it has no value until a parser bug is actually found, and then it is cheap. |
 | **Auth (Auth.js or Better Auth)** | 6 – 10 | Buys a lock screen and nothing else while the app is loopback-only, since anyone with filesystem access reads `app.db` directly. Kept cheap by the `user_id` discipline. **Mandatory before any deployment.** |
@@ -168,7 +169,7 @@ Ordered by likelihood of being built. Full descriptions in `FEATURES.md` §10.
 | **Extra report views** (12-month trend, top counterparties, cumulative curve) | 15 – 25 | All read the existing `MonthlyFacts`, so they are cheap and additive. Deferred because the ledger's filter summary bar already answers most ad-hoc questions, and you should find out which view you actually miss. |
 | **Phone access** (promotion to a server) | 14 – 20 | Add auth, VPS, swap the Drizzle driver to `node-postgres`, RLS policies, TLS. Kept at 2 days rather than 2 weeks purely by the `user_id`-everywhere rule (`ARCHITECTURE.md` §2.3). Deferred because it needs auth first and v1 needs to work first. |
 
-**Total deferred: roughly 224–340 hours** — slightly more than v1 itself. That ratio is the point of the re-scope, not an accident.
+**Total deferred: roughly 224–340 hours** — about the same size as v1 itself. Half the original ambition is sitting in that table rather than in your evenings, which is the point of the re-scope, not an accident.
 
 ---
 
@@ -177,6 +178,8 @@ Ordered by likelihood of being built. Full descriptions in `FEATURES.md` §10.
 **Too low, probably:** bank-fixture iteration (stated 10–20h — a single awkward bank can double it); the mapping UI (10–16h assumes the live preview is straightforward, and preview UIs rarely are); the review-queue screen (14–22h assumes the categorization component is inherited from the ledger and that the batch state machine behaves); empty/loading/error states (6–10h is the classic underestimate — six screens × three states × the ones you forget).
 
 **Too high, possibly:** the health metrics (7–10h — genuinely trivial once `MonthlyFacts` exists); the categories CRUD (5–8h for a two-level tree with shadcn is comfortable).
+
+**Lowest value per hour in v1:** the `MANUAL_ENTRY_REVIEW` branch (5–8h). It is a preference switch that is off by default, on a path — typing a row yourself — with no parsing error to catch. It is cheap because it reuses the queue wholesale, and it is the obvious first cut if the schedule slips. Nothing else in v1 depends on it.
 
 **Not estimated at all:** anything you discover after using it for a month, which `ARCHITECTURE.md` §9 step 12 exists to surface. Budget a further 20–40h for the changes that month will demand, because it will demand some.
 

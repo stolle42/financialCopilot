@@ -8,21 +8,38 @@
 
 One Next.js app on `localhost`, one SQLite file, eight tables. No cloud, no Docker, no separate API process, no login.
 
+Data moves in one direction through three stages: **in**, **stored**, **read**. Two input paths run in parallel and converge on one table.
+
 ```mermaid
 flowchart TD
-    M["Manual entry<br/>categorized as you type"] --> T
-    C["CSV file"] --> P["Import pipeline<br/>sniff · map · dedup"]
-    P --> S["import_staged_rows<br/>scratch, deleted on commit"]
-    S --> R["Review queue<br/>categorize before commit"]
+    subgraph STAGE1 ["1 · Input"]
+        M["Manual entry<br/>categorized as you type"]
+        C["CSV file"] --> P["Import pipeline<br/>sniff · map · dedup"]
+        P --> S["import_staged_rows<br/>nothing counted yet"]
+        S --> R["Review queue<br/>categorize every row"]
+    end
+
+    subgraph STAGE2 ["2 · Store"]
+        CAT["categories<br/>lookup + flags"]
+        T["<b>transactions</b><br/>the only fact table"]
+        ACC["accounts<br/>lookup + is_liquid"]
+    end
+
+    subgraph STAGE3 ["3 · Analyse and correct"]
+        MO["Monthly overview<br/>KPIs + breakdown"]
+        L["Ledger<br/>view + correct"]
+        HM["3 health metrics<br/>savings · fixed · runway"]
+    end
+
+    M --> T
+    M -. optional .-> S
     R --> T
-    T["<b>transactions</b><br/>the only fact table"]
-    T -.references.-> CAT["categories<br/>lookup + flags"]
-    T -.references.-> ACC["accounts<br/>lookup + is_liquid"]
-    T <--> L["Ledger<br/>fix things afterwards"]
-    T --> MO["Monthly overview<br/>KPIs + breakdown"]
-    T --> HM["3 health metrics<br/>savings · fixed/var · runway"]
+    T -. references .-> CAT
+    T -. references .-> ACC
+    T <--> L
+    T --> MO
+    T --> HM
     CAT --> MO
-    CAT --> R
     ACC --> HM
 
     classDef input fill:#eceff1,stroke:#607d8b,stroke-width:1px,color:#263238
@@ -33,8 +50,8 @@ flowchart TD
 
     class M,C input
     class P process
-    class T,CAT,ACC,S table
-    class L,R writeview
+    class S,T,CAT,ACC table
+    class R,L writeview
     class MO,HM readview
 ```
 
@@ -46,13 +63,17 @@ flowchart TD
 | 🟧 amber | **Screen, reads and writes** |
 | 🟦 blue | **Screen, read-only** |
 
+**`import_staged_rows` is green and the review queue above it is amber**, which is the whole point of the staging design: parsed rows are *persisted* (so an interrupted batch survives) but they are not `transactions`, so no report can see them. Nothing counts until the queue commits.
+
 **Two arrows are not data flow.** `transactions → categories` and `transactions → accounts` are foreign keys: a transaction *points at* a category and an account. Nothing is written into those tables by a transaction. Three consequences, all commonly got backwards:
 
 - **Reports read `transactions`**, joined to `categories`. Not accounts. `accounts` contributes one value to the whole reporting layer: the `is_liquid` balance in the runway metric.
 - **Balances are not stored.** No balance column exists. It is `opening_balance_minor + SUM(transactions.amount_minor)`, computed on read.
 - **Categorizing does not write to `categories`.** It sets `category_id` on a staged row or a transaction. The `categories` table is written only by the seed script and the Categories screen.
 
-**The two input paths are deliberately asymmetric.** Manual entry writes one row straight to `transactions`, categorized in the same form — there is nothing to review, because you typed it. CSV goes through a staging table and a review queue, because it arrives in bulk from a source you do not control, under a mapping profile that is a guess until you see parsed output. Routing quick-add through a review step would be ceremony with no error to catch.
+**The two lanes are deliberately asymmetric, and the box count is honest about it.** Manual entry writes one row straight to `transactions`, categorized in the same form — there is nothing to parse and therefore nothing to verify. CSV takes four steps because it arrives in bulk from a source you do not control, under a mapping profile that is a guess until you see parsed output. Those four boxes are ~44% of the project (`EFFORT.md`), which is why they get a stage to themselves.
+
+Manual entry can be routed through the queue by setting `MANUAL_ENTRY_REVIEW=true` (§4.6) — the dashed arrow. Off by default: making quick-add a two-step flow would cost the thing quick-add exists for.
 
 ### 1.1 Where things live
 
@@ -110,7 +131,7 @@ They sort correctly as strings. Timezone-converting a booking date is a bug: the
 
 ## 3. Data model
 
-`user_id NOT NULL REFERENCES users(id)` on every table. Every reference is a declared FK with explicit `ON DELETE` — `RESTRICT` by default, `CASCADE` only for `import_raw_rows` and `import_staged_rows`. `PRAGMA foreign_keys = ON` protects nothing without declared constraints.
+`user_id NOT NULL REFERENCES users(id)` on every table. Every reference is a declared FK with an explicit `ON DELETE`: **`RESTRICT`** by default (the app decides what may be deleted), **`CASCADE`** for rows owned by a batch (`import_raw_rows`, `import_staged_rows`), and **`SET NULL`** for provenance pointers whose target may legitimately vanish (`transactions.import_batch_id` and `.raw_row_id`, `import_staged_rows.near_duplicate_of` and `.category_id`, `import_batches.mapping_profile_id`). `PRAGMA foreign_keys = ON` protects nothing without declared constraints.
 
 Migration 0001 creates all eight tables, including the import ones, though import is built at step 8. Adding an FK to a populated SQLite table is a full rebuild; creating a table early is free.
 
@@ -186,17 +207,23 @@ import_raw_rows                    -- immutable, never updated
 
 import_staged_rows                 -- scratch space, deleted on commit
   id, user_id,
-  batch_id   NOT NULL REFERENCES import_batches(id) ON DELETE CASCADE,
-  raw_row_id NOT NULL REFERENCES import_raw_rows(id) ON DELETE CASCADE,
+  source     TEXT NOT NULL CHECK (source IN ('import','manual')),
+  batch_id   REFERENCES import_batches(id) ON DELETE CASCADE,      -- NULL when manual
+  raw_row_id REFERENCES import_raw_rows(id) ON DELETE CASCADE,     -- NULL when manual
+  account_id NOT NULL REFERENCES accounts(id) ON DELETE RESTRICT,
   booking_date, amount_minor, counterparty_raw, counterparty, description,
   end_to_end_ref, dedup_key,
-  parse_status    TEXT,            -- 'ok' | 'error'
+  parse_status    TEXT,            -- 'ok' | 'error'   (always 'ok' when manual)
   parse_error     TEXT,
   dedup_state     TEXT,            -- 'new' | 'exact_duplicate' | 'near_duplicate'
   near_duplicate_of REFERENCES transactions(id) ON DELETE SET NULL,
   category_id  REFERENCES categories(id) ON DELETE SET NULL,   -- chosen by the user
   decision     TEXT,               -- 'accept' | 'skip' | NULL = undecided
+  created_at,
+  CHECK ((source = 'import' AND batch_id IS NOT NULL AND raw_row_id IS NOT NULL)
+      OR (source = 'manual'  AND batch_id IS NULL     AND raw_row_id IS NULL))
   INDEX (batch_id, counterparty)   -- the review queue sorts by counterparty (§4.2)
+  INDEX (user_id, created_at) WHERE source = 'manual'   -- the pending-manual list (§4.6)
 
 mapping_profiles
   id, user_id, name,
@@ -231,7 +258,7 @@ A move between your own accounts is two independent rows. Balances stay correct 
 
 ## 4. CSV import
 
-CSV goes through a staging table and a review queue. **Manual entry does not** — quick-add writes one categorized row straight to `transactions` (§1). The asymmetry is deliberate: there is no error to catch in a row you typed yourself.
+CSV goes through a staging table and a review queue. **Manual entry does not by default** — quick-add writes one categorized row straight to `transactions` (§1), because there is no parsing error to catch in a row you typed yourself. `MANUAL_ENTRY_REVIEW=true` opts it in; §4.6 covers how, and how it differs.
 
 ```mermaid
 flowchart TD
@@ -318,9 +345,11 @@ Enforcement is the `UNIQUE (user_id, account_id, dedup_key)` index, not applicat
 
 ### 4.4 Commit
 
-**One SQLite transaction** — accepted staged rows become transactions, staging for the batch is deleted, the batch is marked `committed`. All or nothing. Chunking was rejected: a partial batch breaks undo and the idempotency guarantee, and better-sqlite3 does ~50k inserts/second anyway.
+**An import batch commits as one SQLite transaction** — accepted staged rows become transactions, that batch's staging is deleted, the batch is marked `committed`. All or nothing. Chunking was rejected: a partial batch breaks undo and the idempotency guarantee, and better-sqlite3 does ~50k inserts/second anyway.
 
-The insert still uses `ON CONFLICT DO NOTHING` against the dedup index. Staging classified duplicates when the file was parsed, but the ledger can have changed since — the index is the guarantee, staging is the preview.
+**A pending manual entry commits on its own** (§4.6): one insert, one staged-row delete, one transaction, no batch to mark. There is nothing to make atomic across rows because there is only ever one row.
+
+Either way the insert uses `ON CONFLICT DO NOTHING` against the dedup index. Staging classified duplicates when the file was parsed, but the ledger can have changed since — the index is the guarantee, staging is the preview.
 
 Raw rows persist beyond the commit, unlike staged rows. They **preserve** the source so a future re-parse can fix a parsing quirk without re-downloading statements. Re-parse itself is deferred, so this is insurance, not a button.
 
@@ -332,6 +361,32 @@ The review queue is the primary defence — a bad mapping profile is caught in �
 - `edited_at` is set explicitly by the update path. Comparing `updated_at = created_at` would be a coin flip.
 - Reachable from a **recent-imports list** (last ten batches), which also lists batches still in `reviewing` so an abandoned one can be resumed or discarded.
 - Tested, not hoped for.
+
+### 4.6 Optional review for manual entries
+
+`MANUAL_ENTRY_REVIEW=true` routes quick-add through the same queue instead of writing directly. **Off by default**, because quick-add exists to log a cash expense in five seconds and a two-step flow removes the point of it.
+
+When on, quick-add writes an `import_staged_rows` row with `source = 'manual'`, `batch_id` and `raw_row_id` NULL, and the category you already picked. Those rows appear as a standing **"Pending entries"** list on the import screen, alongside any in-review batches.
+
+**Where it is identical to an import row:** the staging table, the exclusion from every report until commit, the dedup index and `ON CONFLICT DO NOTHING`, the category picker, and the fact that nothing counts until you say so.
+
+**Where it differs, deliberately:**
+
+| | Import batch | Pending manual entry |
+|---|---|---|
+| Commits | all rows at once, one transaction | one row at a time |
+| Ordering | sorted by counterparty (`INDEX (batch_id, counterparty)`) | newest first (`INDEX (user_id, created_at)`) — a handful of rows, clustering buys nothing |
+| Undo after commit | batch undo, from the recent-imports list | **none — delete the row in the ledger.** Batch undo exists because an import writes 400 rows you cannot remove by hand; one row is already deletable |
+| Abandoning it | batch stays `reviewing`, resumable | the pending row simply stays pending until you accept or discard it |
+
+Two notes on why it is shaped this way:
+
+- **It reuses the queue rather than adding a second one.** The alternative — writing to `transactions` with an `unconfirmed` flag and hiding those rows from reports — would put a third condition on the exclusion predicate (§5.1), the most dangerous query in the app, and create a class of row that exists but is silently uncounted. Staging keeps "not yet real" and "real" in different tables, which is the distinction that makes the whole import design safe.
+- **The `CHECK` constraint in §3.1 keeps the two sources honest.** An import row must have a batch and a raw row; a manual row must have neither. Without it, making `batch_id` nullable would quietly permit an orphaned import row.
+
+`dedup_key` is `'manual:' + uuid` either way (§4.3), so a pending manual entry cannot collide with anything, and the flag can be flipped between entries without consequence — rows already pending stay pending.
+
+**One invariant worth a test rather than a comment.** `import_staged_rows.account_id` exists because a manual row has no batch to inherit it from, so for import rows it duplicates `import_batches.account_id`. That duplication is not cosmetic: `dedup_key` hashes `account_id` (§4.3) and the uniqueness guarantee is `UNIQUE (user_id, account_id, dedup_key)`. If the two ever disagreed, the key and the index column would be computed from different accounts and dedup would fail silently — the R6 "too loose" failure. SQLite cannot express a cross-table `CHECK`, so the guarantee is procedural: staging writes `account_id` once, from the batch, in the same statement that creates the rows, and an integration test asserts the two agree for every staged import row.
 
 ---
 
@@ -400,7 +455,7 @@ Six. Server Components by default; client components only where interaction dema
 | 3 | Quick-add / edit transaction | One form for both |
 | 4 | Accounts | + small client form |
 | 5 | Categories | + client forms for merge and delete-with-reassignment |
-| 6 | Import | Upload → map → preview → **review queue** → commit, plus recent-imports list |
+| 6 | Import | Upload → map → preview → **review queue** → commit, plus the recent-imports list and any pending manual entries (§4.6) |
 
 **Categorization happens in the review queue (§4.2), not here.** The ledger is where you fix things afterwards: a category you got wrong, a row you filed under Unklar and later identified, a transfer leg you forgot to mark. It shares the same three affordances — counterparty sort, same-as-previous keystroke, type-ahead picker — because the same work happens at lower volume, and the partial index on uncategorized rows exists for it. But the bulk of the monthly effort now lands in screen 6.
 
@@ -430,7 +485,7 @@ No virtualization — pagination at 50 rows suffices below ~50k transactions. `L
 | Reports + 3 metrics | Golden-file tests over committed `MonthlyFacts` fixtures |
 | Exclusion predicate | Temp SQLite: `kind = 'transfer'` never reaches income/expenses; force-include and force-exclude both override; uncategorized still counts. Plus a static check that every aggregate imports the shared fragment |
 | Undo a batch | Import a fixture, undo, assert the ledger is identical, including an edited row surviving with a warning |
-| Staging isolation | Stage a batch, assert `transactions` and every report are unchanged; assert an abandoned batch is resumable |
+| Staging isolation | Stage a batch, assert `transactions` and every report are unchanged; assert an abandoned batch is resumable. Same for a pending manual entry (§4.6), plus the `CHECK` rejecting a manual row that carries a `batch_id`, plus `staged.account_id = batch.account_id` for every staged import row |
 | Repositories | `:memory:` SQLite — fast enough to run on save |
 | Import flow | One Playwright test: upload → map → preview → review → categorize → commit → verify → undo |
 
@@ -446,10 +501,10 @@ Steps 1–3 are load-bearing for everything after.
 2. **Migration 0001** — all eight tables. Seed the taxonomy with `is_fixed`/`is_essential`, Umbuchung (`kind = 'transfer'`), Unklar, and the `users` row.
 3. **`currentUserId()` + the repository tenancy pattern.** Before there are 25 queries to retrofit.
 4. **Accounts CRUD + computed balances.**
-5. **Quick-add + edit/delete + exclude toggle.** Usable, badly. **Enter a week of your own real spending by hand before continuing.**
+5. **Quick-add + edit/delete + exclude toggle.** Direct-write path only — the `MANUAL_ENTRY_REVIEW` branch (§4.6) waits for step 8, since it needs the queue. Usable, badly. **Enter a week of your own real spending by hand before continuing.**
 6. **Ledger** — table, filters and sort in the URL, filter summary bar, inline category edit and exclude toggle.
 7. **Categories** — CRUD, merge, delete-with-reassignment. Needed before step 8, because the review queue is a category picker.
-8. **CSV import** — sniffing → profile → preview → dedup → staged rows → review queue → one-transaction commit → undo → recent-imports list. The largest chunk by a wide margin; do not start before 1–7 are solid, and spend the effort on §4.2's three affordances.
+8. **CSV import** — sniffing → profile → preview → dedup → staged rows → review queue → one-transaction commit → undo → recent-imports list, then the `MANUAL_ENTRY_REVIEW` branch (§4.6) last, since it is the same queue with a different producer. The largest chunk by a wide margin; do not start before 1–7 are solid, and spend the effort on §4.2's three affordances.
 9. **Monthly overview** — `MonthlyFacts`, the shared predicate, pure report functions, golden-file tests, the banner.
 10. **Three health metrics** off the same `MonthlyFacts`.
 11. **Export + backups + a verified restore.**
@@ -468,7 +523,7 @@ Everything else was a scope choice — see §11.
 | 1 | SQLite via better-sqlite3, tenancy in the repository layer | One file, no daemon, sync in-process driver, `:memory:` tests. Cost is no RLS, which §2.3 covers |
 | 2 | Integer minor units in a `Money` type | Removes the floating-point bug class entirely |
 | 3 | Balances computed, reports derived on read | A drifting stored balance is unfalsifiable; derived reports have no staleness bug class |
-| 4 | Staged import + review queue for CSV; manual entry commits directly | The two paths have different error profiles. CSV arrives in bulk from a source you do not control under a mapping profile that is a guess; a typed row is neither. Staging buys three things at once: a bad profile never reaches the ledger, near-duplicate decisions stay non-destructive, and categorization happens while the rows are still recognizable — resumably (§4.2) |
+| 4 | Staged import + review queue for CSV; manual entry commits directly unless `MANUAL_ENTRY_REVIEW` is on (§4.6) | The two paths have different error profiles. CSV arrives in bulk from a source you do not control under a mapping profile that is a guess; a typed row is neither. Staging buys three things at once: a bad profile never reaches the ledger, near-duplicate decisions stay non-destructive, and categorization happens while the rows are still recognizable — resumably (§4.2) |
 | 5 | No auth, loopback only | Full-disk encryption is the real boundary; §2.3 keeps auth an afternoon away (§7) |
 
 ---

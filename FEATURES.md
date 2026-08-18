@@ -32,7 +32,7 @@ Two things not on that list are built anyway, because the eight are unusable wit
 ## 1. Foundation
 
 - [ ] **Single hardcoded user, no sign-in.** One seeded row in `users`. Every table still carries `user_id` and every query still filters it — the discipline is kept, the login screen is not built. `ARCHITECTURE.md` §7 covers why.
-- [ ] **Config from `.env`, no settings screen.** `EUR`, `de-DE`, `Europe/Berlin`, all accounts EUR.
+- [ ] **Config from `.env`, no settings screen.** `EUR`, `de-DE`, `Europe/Berlin`, all accounts EUR, plus `MANUAL_ENTRY_REVIEW` (§3). Settings you set once and forget; a UI for them is not in scope.
 - [ ] **Versioned migrations** from day one.
 - [ ] **Seed script** — the German taxonomy with `is_fixed` and `is_essential` set, plus Umbuchung (§3.1) and Unklar (§5.2).
 
@@ -58,6 +58,7 @@ Cut: account detail page, balance-over-time chart, `loan` type, archive, icons, 
 - [ ] **Edit / delete** a single transaction. Same form as quick-add.
 - [ ] **Signed amounts, integer minor units** — expenses negative, income positive. One convention, enforced in the domain layer, asserted at every write.
 - [ ] **Row-level exclude toggle** — three states: inherit the category's flag (default), force-include, force-exclude. On the edit form and inline in the ledger. The only thing that writes `is_excluded`.
+- [ ] **Optional review for manual entries** — `MANUAL_ENTRY_REVIEW=true` routes quick-add through the import review queue (§5.2) instead of writing directly. **Off by default**: quick-add exists to log a cash expense in five seconds, and a two-step flow removes the point of it. When on, entries appear as a standing "Pending entries" list in the queue and commit through the identical path. `ARCHITECTURE.md` §4.6 has the mechanism. Built last (build step 8), since it needs the queue to exist.
 
 Cut: splits, tags, recurring templates, foreign currency, attachments, duplicate-a-transaction, pending-vs-booked, bulk edit, free-form notes, a separate uncategorized inbox screen (the ledger's uncategorized filter is it).
 
@@ -90,7 +91,7 @@ Cut: colours, icons, sort order, more than two levels.
 
 ## 5. CSV import
 
-**CSV only.** Parsed rows are staged, reviewed, and only then written to `transactions`. **Manual entry is not staged** — quick-add writes one categorized row directly, because there is no error to catch in a row you typed yourself.
+**CSV only.** Parsed rows are staged, reviewed, and only then written to `transactions`. **Manual entry is not staged by default** — quick-add writes one categorized row directly, because there is no parsing error to catch in a row you typed yourself. It can be opted in with `MANUAL_ENTRY_REVIEW` (§3).
 
 - [ ] **File upload**, one file at a time.
 - [ ] **Encoding / delimiter / decimal-separator / header-offset detection, always overridable.** German exports use `;`, `ISO-8859-1` or `windows-1252`, `1.234,56`, `DD.MM.YYYY`, and often put junk rows above the real header.
@@ -98,7 +99,7 @@ Cut: colours, icons, sort order, more than two levels.
 - [ ] **Live preview** — the first 10 rows as they will be parsed, before you commit to the profile.
 - [ ] **Counterparty display normalization** — keep the bank's text verbatim in `counterparty_raw`, and store a lightly cleaned `counterparty` (trim, collapse whitespace, strip trailing reference digits). Cosmetic and freely changeable, unlike the dedup normalizer. Needed because the review queue clusters rows by counterparty and reference numbers break the clustering.
 - [ ] **Immutable raw-row storage** — every source row persisted verbatim against an `import_batch`, and kept after commit. **Preserves** the data so a future "re-parse this batch" feature can fix a parsing quirk without re-downloading two years of statements. Re-parse itself is cut (§10), so today the payoff is insurance, not a button.
-- [ ] **Recent imports list** — the last ten batches with filename, date, row counts, an **undo** action for committed ones, and a resume link for batches still in review.
+- [ ] **Recent imports list** — the last ten batches with filename, date, row counts, an **undo** action for committed ones, and a resume link for batches still in review. Any pending manual entries (§3) appear here too, as their own short list.
 
 ### 5.1 Deterministic dedup
 
@@ -121,8 +122,8 @@ Nothing reaches `transactions` until you commit here. This is where categorizati
 - [ ] **Commit is blocked until every row is resolved** — categorized or explicitly skipped. No silent blank-to-uncategorized path.
 - [ ] **Unklar as a seeded category** — the honest escape for rows you genuinely cannot identify. It counts as spending, stays visible in the breakdown, and is filterable later, which a wrong-but-plausible guess is not. The commit button shows how much went to Unklar, as friction rather than a silent success. If it grows month over month, see `RISKS.md` R2.
 - [ ] **The batch is resumable.** Staged rows are persisted, so closing the tab at row 180 of 400 loses nothing — the batch reappears in the recent-imports list. This is why staging is a table rather than an in-memory array, and it is what makes the initial multi-month backfill survivable.
-- [ ] **One SQL transaction on commit** — accepted rows become transactions, staging is cleared, the batch is marked committed. If anything throws, nothing is written and you retry from the queue.
-- [ ] **Undo a whole batch** afterwards, from the recent-imports list.
+- [ ] **One SQL transaction on commit** — a whole batch at once: accepted rows become transactions, that batch's staging is cleared, the batch is marked committed. If anything throws, nothing is written and you retry from the queue. Pending manual entries (§3) commit one row at a time, since there is nothing to make atomic across rows.
+- [ ] **Undo a whole batch** afterwards, from the recent-imports list. A committed manual entry has no batch — delete it in the ledger like any other row.
 
 The three ergonomics bullets are not polish. They are what makes cutting the rules engine survivable, and they decide whether a monthly import takes 15 minutes or an hour.
 
@@ -180,7 +181,7 @@ Cut: FTS5 index, full keyboard navigation, CSV export of the view, saved views, 
 - [ ] **Idempotent import test** — same file twice, zero new rows, including a same-day-repeats fixture.
 - [ ] **Exclusion tests** — a `kind = 'transfer'` category's rows never reach income or expenses; row-level force-include overrides an excluded category; force-exclude overrides an included one.
 - [ ] **Undo test** — import a batch, undo it, assert the ledger is identical to before.
-- [ ] **Staging isolation test** — stage a batch, assert `transactions` and every report are unchanged, and that an abandoned batch resumes with its categorization intact.
+- [ ] **Staging isolation test** — stage a batch, assert `transactions` and every report are unchanged, and that an abandoned batch resumes with its categorization intact. Same for a pending manual entry, plus the `CHECK` that rejects a manual staged row carrying a `batch_id`.
 - [ ] **Backups with a tested restore** — `VACUUM INTO` on an OS schedule, plus a script that restores the newest backup and verifies it.
 - [ ] **Full export** — transactions as CSV plus a JSON dump of accounts and categories.
 - [ ] **Locale-correct formatting** via `Intl` — `1.234,56 €`, `10.08.2026`.

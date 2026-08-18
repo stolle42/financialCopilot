@@ -55,7 +55,7 @@ The characteristic failure is not a crash. It is a monthly overview that reads �
 
 **The cost of cutting the rules engine.** Nothing proposes a category. Every row is categorized by hand, in the review queue, every import, forever — the same forty merchants from scratch each month.
 
-Arithmetic: 100–150 transactions a month at 5–8 seconds a row is **15–20 minutes if the review queue is well built, 45–60 if it is not.** Twelve times a year.
+Arithmetic: 100–150 transactions a month. At 5–8 seconds a row — counterparty-sorted, one keystroke to repeat, type-ahead picker — that is **10–20 minutes**. At 20–30 seconds a row, which is what nested dropdowns, date-ordered rows and mouse round-trips cost, it is **40–75**. Twelve times a year, either way.
 
 **What the review queue already fixed.** An earlier design imported rows uncategorized and left cleanup to the ledger, which stacked a second failure on top of this one: the information needed to identify a row decays, and the rows you postpone are exactly the uninformative ones — cash withdrawals, transfers to people, generic `KARTENZAHLUNG` descriptors. Deferral was selection-biased toward the rows that rot fastest. Categorizing at import, with commit blocked until every row is resolved, removes that. What remains is volume.
 
@@ -136,7 +136,7 @@ A mapping profile is you asserting "column 3 is the amount, dates are `DD.MM.YYY
 
 **Likelihood: very high · Impact: schedule**
 
-Features 3, 4 and 5 are one piece of work — import, its dedup rule, and its review queue — and they are the clear majority of what remains. German bank CSV is a minefield:
+Features 3, 4 and 5 are one piece of work — import, its dedup rule, and its review queue — and at ~44% of the budget (`EFFORT.md`) they are the largest single thing in the project by a wide margin. German bank CSV is a minefield:
 
 - `;` delimiters, `ISO-8859-1` / `windows-1252`, `1.234,56` decimals, `DD.MM.YYYY` dates
 - One signed amount column at some banks, separate `Soll`/`Haben` at others, unsigned amount plus a direction indicator at others again
@@ -333,7 +333,7 @@ Do not optimize until a query exceeds 200ms.
 | **Row-level vs category-level exclusion** | Resolved | `is_excluded` nullable: NULL inherits, 0 forces inclusion, 1 forces exclusion. Written by the three-state toggle on the edit form and in the ledger |
 | **`is_fixed` vs `is_essential`** | Resolved | Two separate flags. Using one as a proxy makes runway wrong |
 | **Transfers** | Resolved, with a known cost | Not modelled. Manual `kind = 'transfer'` categorization on both legs. R3 |
-| **Where categorization happens** | Resolved | In the review queue, at import, with commit blocked until every row is resolved. The ledger is for fixing things afterwards. Manual entry is categorized in the quick-add form and is never staged |
+| **Where categorization happens** | Resolved | In the review queue, at import, with commit blocked until every row is resolved. The ledger is for fixing things afterwards. Manual entry is categorized in the quick-add form and is not staged unless `MANUAL_ENTRY_REVIEW` is on (`ARCHITECTURE.md` §4.6) |
 | **Rows you cannot identify** | Resolved | Seeded `Unklar` category — an honest expense line rather than a guess. The commit button shows the Unklar total as friction. A growing pile is the R2 warning sign |
 
 ---
@@ -352,7 +352,7 @@ Do not optimize until a query exceeds 200ms.
 
 Three things are true.
 
-**Import is the clear majority of the project, and you are designing it against files you have not opened.** Features 3, 4 and 5 are one piece of work and roughly half the budget. Nothing else has a better return than downloading those exports today.
+**Import is the largest thing in the project, and you are designing it against files you have not opened.** Features 3, 4 and 5 are one piece of work and ~44% of the budget — more than the next three areas combined. Nothing else has a better return than downloading those exports today.
 
 **The main remaining risk is running cost, not build cost.** Cutting the rules engine means no rule ever proposes a category — every row of every import is a human decision, twelve times a year, forever. The review queue makes those decisions happen at the right moment and makes them resumable, which is most of the problem solved; what it cannot do is make them fewer. The three affordances in `ARCHITECTURE.md` §4.2 are therefore not polish, they are the feature, and the learned counterparty→category map is a day's work away when the queue starts feeling like typing rather than confirming.
 
