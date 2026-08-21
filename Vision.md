@@ -57,23 +57,26 @@ A private individual who:
 These are tie-breakers. When two designs are both reasonable, the one that better serves a
 higher-numbered principle loses to the one serving a lower-numbered principle.
 
-1. **Local and private by default.** The data lives in a file on the user's machine. Nothing is
-   transmitted anywhere. This is not a feature to be advertised — it is the default state, and any
-   future change to it is a breaking change to the product's identity.
-2. **Honest over automatic.** The app never guesses a category and silently pretends to be sure.
-   Where it suggests, it suggests visibly and the user confirms. A wrong number presented
-   confidently is worse than no number.
-3. **The answer is a picture.** A table of transactions is raw material, not an answer. Every core
-   question should resolve to something the user can understand at a glance.
-4. **KISS is a product rule, not just a code rule.** A feature that requires explanation is a
+1. **Local-first.** The database on the user's machine is the **sole source of truth**, and **no
+   feature may require the network to function.** Anything that does leave the machine is opt-in,
+   per-feature, and visible — never a default, never silent. v1 transmits nothing at all; this
+   wording exists so that later features (§7) can be added without breaking the product's promise
+   rather than by amending it. In practice this means anything that might one day become a network
+   call sits behind an interface from day one.
+2. **KISS is a product rule, not just a code rule.** A feature that requires explanation is a
    feature that needs redesigning or removing. The pressure to add "just one more field" is the
    primary threat to this project.
-5. **No lock-in.** Open-source dependencies only. The user's data is a plain, portable file they can
-   open with other tools. Exporting everything is always possible.
-6. **Trustworthy before clever.** Nothing probabilistic is added until the deterministic core is
+3. **Honest over automatic.** The app never guesses a category and silently pretends to be sure.
+   Where it suggests, it suggests visibly and the user confirms. A wrong number presented
+   confidently is worse than no number.
+4. **Trustworthy before clever.** Nothing probabilistic is added until the deterministic core is
    provably correct. Unlike the principles above, this one governs *sequencing* rather than design —
    it is why AI features are absent from v1 despite being genuinely planned (§7). A recommendation
    built on a ledger the user does not yet trust is worse than no recommendation.
+5. **The answer is a picture.** A table of transactions is raw material, not an answer. Every core
+   question should resolve to something the user can understand at a glance.
+6. **No lock-in.** Open-source dependencies only. The user's data is a plain, portable file they can
+   open with other tools. Exporting everything is always possible.
 
 ---
 
@@ -213,8 +216,10 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 - **Moving money.** The app is a read-only ledger. It never initiates a payment, ever.
 - **Bank API / Open Banking / credential storage / screen scraping.** CSV is the boundary. This
   keeps the app free of credentials, licensing regimes, and per-bank integration maintenance.
-- **Cloud sync, accounts, sharing, or multi-user access.** One user, one machine, one file.
-- **Telemetry or analytics of any kind.**
+- **Multi-user access, shared ledgers, or holding another person's data.** One user, one machine, one
+  file. Sync between a single user's *own* devices is not forbidden by principle 1, but it needs a
+  server and is not planned — treat it as a v3 question at the earliest.
+- **Telemetry or analytics of any kind.** No exceptions, opt-in or otherwise.
 
 **Not in v1 (defensible later, deliberately excluded now):**
 
@@ -231,10 +236,16 @@ Listed so that "should we add…?" has an answer that does not require a meeting
   the riskiest feature in the product. Revisit once import is proven.
 - **AI features — deferred by design, not rejected.** Two are intended: **receipt scanning** that
   turns a photograph into a transaction, and **analysis with recommendations** for improving the
-  user's finances. They are excluded from v1 under principle 6 — the ledger must be provably
+  user's finances. Both are excluded from v1 under principle 6 — the ledger must be provably
   trustworthy before anything probabilistic sits on top of it. The name *financialCopilot*
-  anticipates these features rather than contradicting the v1 scope. Where such models may run is
-  unresolved and tracked in §9.
+  anticipates these features rather than contradicting the v1 scope.
+
+  Worth recording now, because it changes how much these features actually cost: **receipt
+  extraction is narrow, structured, and runs on-device**, and **much of "analysis and tips" is
+  statistics rather than inference** — averages, outliers, dormant subscriptions, budget pace. That
+  work is deterministic, therefore testable, therefore compatible with TDD in a way model output is
+  not. Only *conversational* analysis ("why was last month expensive?") clearly wants a capable
+  model. See §9.
 - Docker images and desktop packaging. v1 is a local web app; these are later delivery options and
   the architecture must not foreclose them (assumption 6).
 
@@ -271,7 +282,7 @@ These block later documents and should be resolved before the phase noted.
 
 | # | Question | Blocks |
 | --- | --- | --- |
-| 1 | **Where may AI models run?** Receipt scanning and analysis (§7) will eventually need a model. A cloud model contradicts principle 1; local-only models constrain what those features can do. Principle 1 and the AI roadmap are on a collision course, and this is left unresolved deliberately rather than settled prematurely. Whoever plans v2 must decide it before any AI work starts. | v2 planning |
+| 1 | **Which AI features, if any, justify leaving the machine?** Principle 1 now permits opt-in outbound calls, so this is a judgement call per feature rather than a contradiction. Receipt extraction and statistical analysis appear locally feasible; conversational analysis probably is not. Decide feature by feature when v2 is planned — not before, and never as a blanket policy. | v2 planning |
 
 The v1 scope is otherwise settled. Everything below has been decided.
 
@@ -287,6 +298,7 @@ The v1 scope is otherwise settled. Everything below has been decided.
 | The name vs. the AI-free scope | Name kept. AI is genuinely planned (receipt scanning, analysis) but sequenced after a trustworthy core — principle 6. | 2026-08-21 |
 | Budget period and rollover | Fixed calendar month in v1, no rollover. User-selectable periods and optional rollover are later features. | 2026-08-21 |
 | Where do predefined categories come from? | One fixed, opinionated built-in set in v1. No first-run picker. The actual list is decided in features.md. | 2026-08-21 |
+| Does AI force us to abandon local-first? | No. Principle 1 relaxed from "nothing is transmitted" to proper local-first: local DB is authoritative, no feature may *require* the network, anything outbound is opt-in and per-feature. v1 scope unchanged; a fully networked product was considered and rejected — it would cost assumption 2, the persona in §3, and the product's only structural differentiator. | 2026-08-21 |
 
 ---
 
