@@ -47,8 +47,6 @@ A private individual who:
 - Businesses, freelancers, or anyone needing tax-grade bookkeeping.
 - Investors tracking portfolio performance or net worth across assets.
 - Households wanting shared, multi-user access to one ledger.
-- Anyone who wants a fully automatic app that requires zero input. This product asks for effort and
-  returns understanding. That trade is the point, not a limitation to be engineered away.
 
 ---
 
@@ -70,7 +68,7 @@ higher-numbered principle loses to the one serving a lower-numbered principle.
    Where it suggests, it suggests visibly and the user confirms. A wrong number presented
    confidently is worse than no number.
 4. **Trustworthy before clever.** Nothing probabilistic is added until the deterministic core is
-   provably correct. Unlike the principles above, this one governs *sequencing* rather than design —
+   provably correct. Unlike the others, this one governs *sequencing* rather than design —
    it is why AI features are absent from v1 despite being genuinely planned (§7). A recommendation
    built on a ledger the user does not yet trust is worse than no recommendation.
 5. **The answer is a picture.** A table of transactions is raw material, not an answer. Every core
@@ -93,19 +91,18 @@ The product succeeds when it can answer three questions faster than any alternat
 | Criterion | Target |
 | --- | --- |
 | Empty app → first meaningful chart | **< 10 minutes** for a new user |
-| Import + fully categorise one month of bank CSV | **< 2 minutes** |
+| Import + fully categorise one month of bank CSV | **< 5 minutes** |
 | Routine weekly upkeep | **< 5 minutes** |
 | Answering "where did my money go last month" | **1 screen, 0 clicks beyond period selection** |
-| Domain layer framework imports | **zero** |
-| Features arrived at test-first | **all of them** |
 
-The first four are the "modern and natural" criterion made concrete. The last two are the
-"maintainable" criterion made concrete. Both are non-negotiable for v1; a version that hits one and
-misses the other has failed.
+These conditions are non-negotiable for v1: a version that misses any of them has failed.
 
 ---
 
+
 ## 6. Scope — version 1.0
+*todo: move this section to featrues.md*
+
 
 Five capabilities. Nothing here is optional; nothing not here is in v1.
 
@@ -125,8 +122,8 @@ Two requirements follow directly from computing balances:
   reality drifts from the ledger, and it is a general account operation, not a cash workaround.
 
 **Cash is an ordinary account, not a special type.** A user who wants cash detail creates a cash
-account and records ATM withdrawals as transfers into it. A user who does not simply categorises the
-withdrawal as an expense and never meets the concept at all. Accounts are deliberately
+account and records ATM withdrawals as transfers into it. A user who does not can simply categorise the
+withdrawal as an expense. Accounts are deliberately
 low-prominence in the UI — they exist to make the numbers trustworthy, not because anyone wants to
 look at them.
 
@@ -147,7 +144,7 @@ corrupting the charts that are the product's entire purpose.
 Transactions are created two ways:
 
 - **Manually**, for cash and anything the bank does not see. Manual entry is a repeated, high-volume
-  action and must be fast — the account field is defaulted or hidden, never a required decision.
+  action and must be fast — the account field is defaulted to Cash.
 - **By CSV import**, the primary path for everything else.
 
 CSV import must survive real-world bank exports: differing column orders, date formats, decimal
