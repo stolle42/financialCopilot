@@ -16,7 +16,7 @@ Two requirements follow directly from computing balances:
 
 - **Opening balance.** Each account records what it held on the day tracking began. Without it, every
   computed balance is wrong until the account's entire history has been imported — which will never
-  happen (see [assumption 7](./Vision.md#assumptions)).
+  happen (see the assumption [*Historical data starts where the user starts*](./Vision.md#a-history-starts-where-user-starts)).
 - **Reconcile to actual.** The user can state an account's real balance at any moment; the app books
   the difference as an adjustment (see [Categories](#categories)). This is what keeps computed balances honest when
   reality drifts from the ledger, and it is a general account operation, not a cash workaround.
@@ -119,7 +119,7 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 - **Bank API / Open Banking / credential storage / screen scraping.** CSV is the boundary. This
   keeps the app free of credentials, licensing regimes, and per-bank integration maintenance.
 - **Multi-user access, shared ledgers, or holding another person's data.** One user, one machine, one
-  file. Sync between a single user's *own* devices is not forbidden by [principle 1](./Vision.md#principles), but it needs a
+  file. Sync between a single user's *own* devices is not forbidden by the principle [*Local-first*](./Vision.md#p-local-first), but it needs a
   server and is not planned — treat it as a v3 question at the earliest.
 - **Telemetry or analytics of any kind.** No exceptions, opt-in or otherwise.
 
@@ -134,11 +134,11 @@ Listed so that "should we add…?" has an answer that does not require a meeting
   the extent of the v1 mobile commitment.
 - Recurring-transaction detection and forecasting.
 - Budget rollover, and budget periods other than monthly — see [Budgets](#budgets).
-- Rule-based auto-categorisation on import. Tempting, but it collides with [principle 2](./Vision.md#principles) and inflates
+- Rule-based auto-categorisation on import. Tempting, but it collides with the principle [*KISS is a product rule*](./Vision.md#p-kiss) and inflates
   the riskiest feature in the product. Revisit once import is proven.
 - **AI features — deferred by design, not rejected.** Two are intended: **receipt scanning** that
   turns a photograph into a transaction, and **analysis with recommendations** for improving the
-  user's finances. Both are excluded from v1 under [principle 6](./Vision.md#principles) — the ledger must be provably
+  user's finances. Both are excluded from v1 under the principle [*Trustworthy before clever*](./Vision.md#p-trustworthy-before-clever) — the ledger must be provably
   trustworthy before anything probabilistic sits on top of it. The name *financialCopilot*
   anticipates these features rather than contradicting the v1 scope.
 
@@ -149,4 +149,4 @@ Listed so that "should we add…?" has an answer that does not require a meeting
   not. Only *conversational* analysis ("why was last month expensive?") clearly wants a capable
   model. See [Open questions](./Vision.md#open-questions).
 - Docker images and desktop packaging. v1 is a local web app; these are later delivery options and
-  the architecture must not foreclose them (see [assumption 6](./Vision.md#assumptions)).
+  the architecture must not foreclose them (see the assumption [*The user can run a local application*](./Vision.md#a-local-application)).
