@@ -1,9 +1,11 @@
 # Features
 
+<a id="scope"></a>
 ## 1. Scope — version 1.0
 
 Five capabilities. Nothing here is optional; nothing not here is in v1.
 
+<a id="accounts"></a>
 ### 1.1 Accounts
 
 Create, edit, and archive accounts, each with a name, type, and running balance derived from its
@@ -14,9 +16,9 @@ Two requirements follow directly from computing balances:
 
 - **Opening balance.** Each account records what it held on the day tracking began. Without it, every
   computed balance is wrong until the account's entire history has been imported — which will never
-  happen (see assumption 7).
+  happen (see [assumption 7](./Vision.md#assumptions)).
 - **Reconcile to actual.** The user can state an account's real balance at any moment; the app books
-  the difference as an adjustment (see §6.3). This is what keeps computed balances honest when
+  the difference as an adjustment (see [Categories](#categories)). This is what keeps computed balances honest when
   reality drifts from the ledger, and it is a general account operation, not a cash workaround.
 
 **Cash is an ordinary account, not a special type.** A user who wants cash detail creates a cash
@@ -25,13 +27,14 @@ withdrawal as an expense. Accounts are deliberately
 low-prominence in the UI — they exist to make the numbers trustworthy, not because anyone wants to
 look at them.
 
+<a id="transactions"></a>
 ### 1.2 Transactions
 
 The ledger. Every transaction has a date, an amount, an account, and a description. There are three
 kinds:
 
 - **Expense** — must always carry a category.
-- **Income** — carries no category in v1 (see §7).
+- **Income** — carries no category in v1 (see [Explicitly out of scope](#out-of-scope)).
 - **Transfer** — a movement between two of the user's own accounts, excluded from all spending
   figures.
 
@@ -51,6 +54,7 @@ separators, and encodings. It therefore needs **reusable per-bank mapping profil
 This is the highest-risk feature in the product and is specified separately in
 [CsvImport.md](./CsvImport.md).
 
+<a id="categories"></a>
 ### 1.3 Categories
 
 A sensible predefined set so the app is useful on first launch, fully editable thereafter (create,
@@ -71,6 +75,7 @@ cannot plan to spend money you cannot account for.
 A reconciliation *surplus* — more money than the ledger predicted — is recorded as **income**, not as
 a negative expense, and therefore needs no category in v1.
 
+<a id="budgets"></a>
 ### 1.4 Budgets
 
 A **monthly spending limit per category**. Budgets exist so the app can tell the user something they
@@ -83,8 +88,9 @@ or any interval the user chooses) are wanted in later versions and should be use
 they arrive. v1 hardcodes the monthly period, but the domain model should treat monthly as *one*
 period rule rather than the only conceivable one.
 
-Protected categories cannot carry budgets (§6.3).
+Protected categories cannot carry budgets (see [Categories](#categories)).
 
+<a id="insights"></a>
 ### 1.5 Insights
 
 A dedicated view over a **user-selected time period**, showing at minimum:
@@ -102,6 +108,7 @@ and should be considered during UX design, but is not a v1 commitment.
 
 ---
 
+<a id="out-of-scope"></a>
 ## 2. Explicitly out of scope
 
 Listed so that "should we add…?" has an answer that does not require a meeting.
@@ -112,7 +119,7 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 - **Bank API / Open Banking / credential storage / screen scraping.** CSV is the boundary. This
   keeps the app free of credentials, licensing regimes, and per-bank integration maintenance.
 - **Multi-user access, shared ledgers, or holding another person's data.** One user, one machine, one
-  file. Sync between a single user's *own* devices is not forbidden by principle 1, but it needs a
+  file. Sync between a single user's *own* devices is not forbidden by [principle 1](./Vision.md#principles), but it needs a
   server and is not planned — treat it as a v3 question at the earliest.
 - **Telemetry or analytics of any kind.** No exceptions, opt-in or otherwise.
 
@@ -126,12 +133,12 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 - Native mobile applications. The app should be usable in a browser at a small window size; that is
   the extent of the v1 mobile commitment.
 - Recurring-transaction detection and forecasting.
-- Budget rollover, and budget periods other than monthly — see §6.4.
-- Rule-based auto-categorisation on import. Tempting, but it collides with principle 2 and inflates
+- Budget rollover, and budget periods other than monthly — see [Budgets](#budgets).
+- Rule-based auto-categorisation on import. Tempting, but it collides with [principle 2](./Vision.md#principles) and inflates
   the riskiest feature in the product. Revisit once import is proven.
 - **AI features — deferred by design, not rejected.** Two are intended: **receipt scanning** that
   turns a photograph into a transaction, and **analysis with recommendations** for improving the
-  user's finances. Both are excluded from v1 under principle 6 — the ledger must be provably
+  user's finances. Both are excluded from v1 under [principle 6](./Vision.md#principles) — the ledger must be provably
   trustworthy before anything probabilistic sits on top of it. The name *financialCopilot*
   anticipates these features rather than contradicting the v1 scope.
 
@@ -140,6 +147,6 @@ Listed so that "should we add…?" has an answer that does not require a meeting
   statistics rather than inference** — averages, outliers, dormant subscriptions, budget pace. That
   work is deterministic, therefore testable, therefore compatible with TDD in a way model output is
   not. Only *conversational* analysis ("why was last month expensive?") clearly wants a capable
-  model. See §9.
+  model. See [Open questions](./Vision.md#open-questions).
 - Docker images and desktop packaging. v1 is a local web app; these are later delivery options and
-  the architecture must not foreclose them (assumption 6).
+  the architecture must not foreclose them (see [assumption 6](./Vision.md#assumptions)).

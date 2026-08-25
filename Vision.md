@@ -30,6 +30,7 @@ category means, and still gives you a real visual answer.** That gap is what thi
 
 ---
 
+<a id="persona"></a>
 ## 3. Who it is for
 
 **Primary persona — "the deliberate tracker".**
@@ -50,6 +51,7 @@ A private individual who:
 
 ---
 
+<a id="principles"></a>
 ## 4. Product principles
 
 These are tie-breakers. When two designs are both reasonable, the one that better serves a
@@ -58,7 +60,7 @@ higher-numbered principle loses to the one serving a lower-numbered principle.
 1. **Local-first.** The database on the user's machine is the **sole source of truth**, and **no
    feature may require the network to function.** Anything that does leave the machine is opt-in,
    per-feature, and visible — never a default, never silent. v1 transmits nothing at all; this
-   wording exists so that later features (§7) can be added without breaking the product's promise
+   wording exists so that later features ([out of scope](./features.md#out-of-scope)) can be added without breaking the product's promise
    rather than by amending it. In practice this means anything that might one day become a network
    call sits behind an interface from day one.
 2. **KISS is a product rule, not just a code rule.** A feature that requires explanation is a
@@ -69,7 +71,7 @@ higher-numbered principle loses to the one serving a lower-numbered principle.
    confidently is worse than no number.
 4. **Trustworthy before clever.** Nothing probabilistic is added until the deterministic core is
    provably correct. Unlike the others, this one governs *sequencing* rather than design —
-   it is why AI features are absent from v1 despite being genuinely planned (§7). A recommendation
+   it is why AI features are absent from v1 despite being genuinely planned ([out of scope](./features.md#out-of-scope)). A recommendation
    built on a ledger the user does not yet trust is worse than no recommendation.
 5. **The answer is a picture.** A table of transactions is raw material, not an answer. Every core
    question should resolve to something the user can understand at a glance.
@@ -99,6 +101,7 @@ These conditions are non-negotiable for v1: a version that misses any of them ha
 
 ---
 
+<a id="assumptions"></a>
 ## 6. Assumptions
 
 Stated so they can be challenged rather than silently inherited.
@@ -124,6 +127,7 @@ Stated so they can be challenged rather than silently inherited.
 
 ---
 
+<a id="open-questions"></a>
 ## 7. Open questions
 
 These block later documents and should be resolved before the phase noted.
@@ -143,10 +147,10 @@ The v1 scope is otherwise settled. Everything below has been decided.
 | Does cash need special handling? | No. Cash is an ordinary opt-in account; reconciliation is a general account operation. | 2026-08-21 |
 | Is income categorised? | Not in v1. Income categories are a later version. | 2026-08-21 |
 | How is the app packaged and launched? | v1 is a local web app started with one command. Docker and desktop packaging are later delivery options; the architecture must not foreclose them. | 2026-08-21 |
-| The name vs. the AI-free scope | Name kept. AI is genuinely planned (receipt scanning, analysis) but sequenced after a trustworthy core — principle 6. | 2026-08-21 |
+| The name vs. the AI-free scope | Name kept. AI is genuinely planned (receipt scanning, analysis) but sequenced after a trustworthy core — [principle 6](#principles). | 2026-08-21 |
 | Budget period and rollover | Fixed calendar month in v1, no rollover. User-selectable periods and optional rollover are later features. | 2026-08-21 |
-| Where do predefined categories come from? | One fixed, opinionated built-in set in v1. No first-run picker. The actual list is decided in features.md. | 2026-08-21 |
-| Does AI force us to abandon local-first? | No. Principle 1 relaxed from "nothing is transmitted" to proper local-first: local DB is authoritative, no feature may *require* the network, anything outbound is opt-in and per-feature. v1 scope unchanged; a fully networked product was considered and rejected — it would cost assumption 2, the persona in §3, and the product's only structural differentiator. | 2026-08-21 |
+| Where do predefined categories come from? | One fixed, opinionated built-in set in v1. No first-run picker. The actual list is decided in [features.md](./features.md#categories). | 2026-08-21 |
+| Does AI force us to abandon local-first? | No. Principle 1 relaxed from "nothing is transmitted" to proper local-first: local DB is authoritative, no feature may *require* the network, anything outbound is opt-in and per-feature. v1 scope unchanged; a fully networked product was considered and rejected — it would cost assumption 2, the [persona](#persona), and the product's only structural differentiator. | 2026-08-21 |
 
 ---
 
