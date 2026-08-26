@@ -147,6 +147,6 @@ Listed so that "should we add…?" has an answer that does not require a meeting
   statistics rather than inference** — averages, outliers, dormant subscriptions, budget pace. That
   work is deterministic, therefore testable, therefore compatible with TDD in a way model output is
   not. Only *conversational* analysis ("why was last month expensive?") clearly wants a capable
-  model. See [Open questions](./Vision.md#open-questions).
+  model that probably won't run on-devices.
 - Docker images and desktop packaging. v1 is a local web app; these are later delivery options and
   the architecture must not foreclose them (see the assumption [*The user can run a local application*](./Vision.md#a-local-application)).

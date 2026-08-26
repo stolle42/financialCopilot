@@ -59,7 +59,11 @@ higher-numbered principle loses to the one serving a lower-numbered principle.
 
 1. <a id="p-local-first"></a>**Local-first.** The database on the user's machine is the **sole source of truth**, and **no
    feature may require the network to function.** Anything that does leave the machine is opt-in,
-   per-feature, and visible — never a default, never silent. v1 transmits nothing at all; this
+   explicit, and visible — never a default, never silent. **Local execution is the default and must be
+   attempted first:** a feature goes to an external service only where no local implementation
+   performs well enough to be worth using — judged feature by feature. Then it is *offered*, not
+   assumed: off until the user is told what data would leave and to whom and agrees, and always
+   revocable. The opt-in may be per-feature or blanket. v1 transmits nothing at all; this
    wording exists so that later features ([out of scope](./features.md#out-of-scope)) can be added without breaking the product's promise
    rather than by amending it. In practice this means anything that might one day become a network
    call sits behind an interface from day one.
@@ -132,11 +136,7 @@ Stated so they can be challenged rather than silently inherited.
 
 These block later documents and should be resolved before the phase noted.
 
-| # | Question | Blocks |
-| --- | --- | --- |
-| 1 | **Which AI features, if any, justify leaving the machine?** The principle [*Local-first*](#p-local-first) now permits opt-in outbound calls, so this is a judgement call per feature rather than a contradiction. Receipt extraction and statistical analysis appear locally feasible; conversational analysis probably is not. Decide feature by feature when v2 is planned — not before, and never as a blanket policy. | v2 planning |
-
-The v1 scope is otherwise settled. Everything below has been decided.
+**None open.** Every question raised so far has been decided.
 
 ### Resolved
 
@@ -150,7 +150,8 @@ The v1 scope is otherwise settled. Everything below has been decided.
 | The name vs. the AI-free scope | Name kept. AI is genuinely planned (receipt scanning, analysis) but sequenced after a trustworthy core — the principle [*Trustworthy before clever*](#p-trustworthy-before-clever). | 2026-08-21 |
 | Budget period and rollover | Fixed calendar month in v1, no rollover. User-selectable periods and optional rollover are later features. | 2026-08-21 |
 | Where do predefined categories come from? | One fixed, opinionated built-in set in v1. No first-run picker. The actual list is decided in [features.md](./features.md#categories). | 2026-08-21 |
-| Does AI force us to abandon local-first? | No. The principle [*Local-first*](#p-local-first) relaxed from "nothing is transmitted" to proper local-first: local DB is authoritative, no feature may *require* the network, anything outbound is opt-in and per-feature. v1 scope unchanged; a fully networked product was considered and rejected — it would cost the assumption [*Single user, single machine, no sync*](#a-single-user), the [persona](#persona), and the product's only structural differentiator. | 2026-08-21 |
+| Which AI features, if any, justify leaving the machine? | **Local where it performs well, external where it does not — judged per feature.** Narrow image work such as receipt scanning is expected to run locally; conversational analysis is not. An external service is offered, never substituted silently, and needs the user's informed, revocable agreement. Local AI needs no gate: nothing leaves. No v1 scope change — AI is out of v1 entirely. | 2026-08-26 |
+| Does AI force us to abandon local-first? | No. The principle [*Local-first*](#p-local-first) relaxed from "nothing is transmitted" to proper local-first: local DB is authoritative, no feature may *require* the network, anything outbound is opt-in. v1 scope unchanged; a fully networked product was considered and rejected — it would cost the assumption [*Single user, single machine, no sync*](#a-single-user), the [persona](#persona), and the product's only structural differentiator. | 2026-08-21 |
 
 ---
 
