@@ -51,6 +51,12 @@ Transactions are created two ways:
 CSV import must survive real-world bank exports: differing column orders, date formats, decimal
 separators, and encodings. It therefore needs **reusable per-bank mapping profiles** and
 **duplicate detection**, because users re-import overlapping date ranges and will do so by accident.
+
+Import ends in a **review step**: parsed rows wait in a pending batch, outside the ledger, until the
+user confirms them. Review groups rows **by vendor** so a month is a few dozen decisions rather than
+a few hundred, and any group **unfolds** for vendors the user splits across categories. Without this
+the five-minute target is missed several times over.
+
 This is the highest-risk feature in the product and is specified separately in
 [CsvImport.md](./CsvImport.md).
 
@@ -136,9 +142,14 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 - Budget rollover, and budget periods other than monthly — see [Budgets](#budgets).
 - Rule-based auto-categorisation on import. Tempting, but it collides with the principle [*KISS is a product rule*](./Vision.md#p-kiss) and inflates
   the riskiest feature in the product. Revisit once import is proven.
-- **AI features — deferred by design, not rejected.** Two are intended: **receipt scanning** that
-  turns a photograph into a transaction, and **analysis with recommendations** for improving the
-  user's finances. Both are excluded from v1 under the principle [*Trustworthy before clever*](./Vision.md#p-trustworthy-before-clever) — the ledger must be provably
+- **Learned recall** — pre-filling a vendor's category from the user's own past decisions. Distinct
+  from rule-based categorisation: a lookup filled in as a side effect of normal work, with nothing to
+  author. The first thing to add once import is proven; see [CsvImport.md](./CsvImport.md#deferred).
+- **AI features — deferred by design, not rejected.** Three are intended: **receipt scanning** that
+  turns a photograph into a transaction, **analysis with recommendations** for improving the
+  user's finances, and **transaction pre-categorisation** on import — local-only, suggestion-only,
+  user-invoked, and held in reserve rather than planned: needed only if learned recall proves
+  insufficient. All are excluded from v1 under the principle [*Trustworthy before clever*](./Vision.md#p-trustworthy-before-clever) — the ledger must be provably
   trustworthy before anything probabilistic sits on top of it. The name *financialCopilot*
   anticipates these features rather than contradicting the v1 scope.
 
