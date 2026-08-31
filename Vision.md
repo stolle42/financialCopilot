@@ -146,6 +146,7 @@ These block later documents and should be resolved before the phase noted.
 | Are transfers a distinct concept? | Yes — first-class, excluded from spending. Required by cash withdrawals and credit-card payments. | 2026-08-21 |
 | Does cash need special handling? | No. Cash is an ordinary opt-in account; reconciliation is a general account operation. | 2026-08-21 |
 | Is income categorised? | Not in v1. Income categories are a later version. | 2026-08-21 |
+| Do income and expenses share one set of categories? | **No — two separate sets that never meet.** Each carries its own protected *Uncategorised* and *Unaccounted*; identical names are safe because a picker is always scoped to the transaction's kind. Transfers never carry a category at all. v1 ships no income categories. Budgets attach to expense categories only. Linking an income category to an expense category, so a refund could offset its origin, is a much later idea. | 2026-08-28 |
 | How is the app packaged and launched? | v1 is a local web app started with one command. Docker and desktop packaging are later delivery options; the architecture must not foreclose them. | 2026-08-21 |
 | The name vs. the AI-free scope | Name kept. AI is genuinely planned (receipt scanning, analysis) but sequenced after a trustworthy core — the principle [*Trustworthy before clever*](#p-trustworthy-before-clever). | 2026-08-21 |
 | Budget period and rollover | Fixed calendar month in v1, no rollover. User-selectable periods and optional rollover are later features. | 2026-08-21 |

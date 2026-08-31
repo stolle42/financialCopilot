@@ -23,23 +23,23 @@ Two requirements follow directly from computing balances:
 
 **Cash is an ordinary account, not a special type.** A user who wants cash detail creates a cash
 account and records ATM withdrawals as transfers into it. A user who does not can simply categorise the
-withdrawal as an expense. Accounts are deliberately
-low-prominence in the UI — they exist to make the numbers trustworthy, not because anyone wants to
-look at them.
+withdrawal as an expense. 
 
+Accounts are deliberately low-prominence in the UI — they exist as a check to make the numbers trustworthy, but might be completely ignored by some users.
 <a id="transactions"></a>
 ### 1.2 Transactions
 
-The ledger. Every transaction has a date, an amount, an account, and a description. There are three
+Every transaction has a date, an amount, an account, and a description. There are three
 kinds:
 
-- **Expense** — must always carry a category.
-- **Income** — carries no category in v1 (see [Explicitly out of scope](#out-of-scope)).
+- **Expense** — must always carry an expense category.
+- **Income** — must always carry an income category. v1 offers only the protected ones, so income
+  stays undifferentiated in practice (see [Explicitly out of scope](#out-of-scope)).
 - **Transfer** — a movement between two of the user's own accounts, excluded from all spending
-  figures.
+  figures. **Transfers never carry a category**, in this or any version.
 
 **Transfers are first-class**, not a pair of offsetting expense/income rows. Modelled as two ordinary
-transactions, every ATM withdrawal and every credit-card payment would appear as spending, silently
+transactions, every ATM withdrawal and every credit-card payment would appear as spending and income, silently
 corrupting the charts that are the product's entire purpose.
 
 Transactions are created two ways:
@@ -63,28 +63,41 @@ This is the highest-risk feature in the product and is specified separately in
 <a id="categories"></a>
 ### 1.3 Categories
 
-A sensible predefined set so the app is useful on first launch, fully editable thereafter (create,
-rename, recolour, delete).
+**Expense categories and income categories are two separate sets.** They never mix in a picker, never
+appear in one list, and a category from one side can never be assigned to a transaction of the other.
+A sensible predefined set of *expense* categories ships so the app is useful on first launch, fully
+editable thereafter (create, rename, recolour, delete).
 
-Two categories are **protected**: the app assigns them itself and forbids their deletion. Their names
-and colours stay editable — only their identity is fixed.
+Each set carries the same two **protected** categories: the app assigns them itself and forbids their
+deletion. Their names and colours stay editable — only their identity is fixed.
+
+ v1 ships **no income categories**  (see [Explicitly out of scope](#out-of-scope)).
 
 | Protected category | Meaning |
 | --- | --- |
 | **Uncategorised** | *"I have not sorted this yet."* A to-do. Transactions land here when their category is deleted. |
-| **Unaccounted** | *"This money is gone and I will never know where."* A final answer, produced by reconciliation. |
+| **Unaccounted** | *"I will never know where this money went, or where it came from."* A final answer, produced by reconciliation. |
 
-The two look alike and mean opposite things. Keeping them separate preserves **"uncategorised = 0"**
-as a meaningful signal that an import has been fully processed. Neither may carry a budget — you
-cannot plan to spend money you cannot account for.
+The two look alike and mean opposite things, on both sides. Keeping them separate preserves
+**"uncategorised = 0"** as a meaningful signal that an import has been fully processed — a signal
+**scoped to expenses**, since in v1 there are no income categories.
 
-A reconciliation *surplus* — more money than the ledger predicted — is recorded as **income**, not as
-a negative expense, and therefore needs no category in v1.
+The same name appearing on both sides is safe precisely because the sets never meet: a picker is
+always scoped to the transaction's kind, so the user is never offered two entries called
+*Uncategorised*.
+
+A reconciliation *shortfall* lands in expense *Unaccounted*. A reconciliation **surplus** — more money
+than the ledger predicted — is recorded as **income**, not as a negative expense, and lands in income
+*Unaccounted*: money appeared and the user will never know why, which is a final answer rather than a
+to-do.
+
+**Budgets attach to expense categories only** (see [Budgets](#budgets)), and never to the protected
+two — you cannot plan to spend money you cannot account for, and income is not something you budget.
 
 <a id="budgets"></a>
 ### 1.4 Budgets
 
-A **monthly spending limit per category**. Budgets exist so the app can tell the user something they
+A **monthly spending limit per expense category**. Budgets exist so the app can tell the user something they
 did not already know: not just what they spent, but whether that was more than they intended. This
 is the feature that makes the product an assistant rather than a ledger.
 
@@ -94,7 +107,7 @@ or any interval the user chooses) are wanted in later versions and should be use
 they arrive. v1 hardcodes the monthly period, but the domain model should treat monthly as *one*
 period rule rather than the only conceivable one.
 
-Protected categories cannot carry budgets (see [Categories](#categories)).
+Income categories and protected categories cannot carry budgets (see [Categories](#categories)).
 
 <a id="insights"></a>
 ### 1.5 Insights
@@ -132,8 +145,10 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 **Not in v1 (defensible later, deliberately excluded now):**
 
 - Multi-currency support.
-- **Income categories.** Income is a single undifferentiated kind in v1. Categorising it (salary,
-  refunds, gifts) is planned for a later version; the domain model should not make that expensive.
+- **Income categories.** e.g. salary, refunds and gifts is a
+  data seed and a chart — no migration, because income transactions already carry a category.
+- **Linking an income category to an expense category** — so a refund could offset the category it
+  came from. A much later idea, and only if a user actually wants it.
 - Investment, asset, or net-worth tracking.
 - Tax reporting or accounting-standard exports.
 - Native mobile applications. The app should be usable in a browser at a small window size; that is
