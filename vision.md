@@ -4,7 +4,9 @@
 >
 > This document defines *why* the product exists and *where its edges are*. It deliberately contains
 > no technical decisions — those live in [techstack.md](./techstack.md) and
-> [architecture.md](./architecture.md). If a discussion about scope stalls, this document decides.
+> [architecture.md](./architecture.md). It decides whether something **belongs in the product at all**;
+> [features.md](./features.md#scope) decides whether something is **in v1**. Where a v1 item conflicts
+> with a principle or assumption here, this document wins.
 
 ---
 

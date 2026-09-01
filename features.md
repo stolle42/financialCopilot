@@ -5,7 +5,9 @@
 <a id="scope"></a>
 ## 1. Scope — version 1.0
 
-Five capabilities. Nothing here is optional; nothing not here is in v1.
+Five capabilities. Nothing here is optional; nothing not here is in v1. **This document decides what
+v1 contains**; [vision.md](./vision.md#principles) decides whether a thing belongs in the product at
+all, and its principles bind this list.
 
 <a id="accounts"></a>
 ### 1.1 Accounts
@@ -20,14 +22,14 @@ Two requirements follow directly from computing balances:
   computed balance is wrong until the account's entire history has been imported — which will never
   happen (see the assumption [*Historical data starts where the user starts*](./vision.md#a-history-starts-where-user-starts)).
 - **Reconcile to actual.** The user can state an account's real balance at any moment; the app books
-  the difference as an adjustment (see [Categories](#categories)). This is what keeps computed balances honest when
+  the difference as a transfer of the category "unacounted" (see [Categories](#categories)). This is what keeps computed balances honest when
   reality drifts from the ledger, and it is a general account operation, not a cash workaround.
 
 **Cash is an ordinary account, not a special type.** A user who wants cash detail creates a cash
 account and records ATM withdrawals as transfers into it. A user who does not can simply categorise the
 withdrawal as an expense.
 
-Accounts are deliberately low-prominence in the UI — they exist as a check to make the numbers trustworthy, but might be completely ignored by some users.
+Accounts are deliberately low-prominence in the UI — they exist as a check to make the numbers trustworthy, but should not take too much time.
 
 <a id="transactions"></a>
 ### 1.2 Transactions
@@ -44,7 +46,7 @@ kinds:
 transactions, every ATM withdrawal and every credit-card payment would appear as spending and income, silently
 corrupting the charts that are the product's entire purpose.
 
-Transactions are created two ways:
+Users can create transactions two ways:
 
 - **Manually**, for cash and anything the bank does not see. Manual entry is a repeated, high-volume
   action and must be fast — the account field is defaulted to Cash.
