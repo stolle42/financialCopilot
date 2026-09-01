@@ -1,3 +1,4 @@
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-01
 # Features
 
 <a id="scope"></a>
@@ -146,8 +147,7 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 **Not in v1 (defensible later, deliberately excluded now):**
 
 - Multi-currency support.
-- **Income categories.** e.g. salary, refunds and gifts is a
-  data seed and a chart — no migration, because income transactions already carry a category.
+- **Income categories.** e.g. salary, refunds and gifts
 - **Linking an income category to an expense category** — so a refund could offset the category it
   came from. A much later idea, and only if a user actually wants it.
 - Investment, asset, or net-worth tracking.
