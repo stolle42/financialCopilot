@@ -1,6 +1,6 @@
 # Vision
 
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-08-31
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-01
 >
 > This document defines *why* the product exists and *where its edges are*. It deliberately contains
 > no technical decisions — those live in [techstack.md](./techstack.md) and
@@ -145,12 +145,12 @@ These block later documents and should be resolved before the phase noted.
 | Deleting a category that has transactions | Reassign to the protected *Uncategorised* category. Never destroys transactions. | 2026-08-21 |
 | Are transfers a distinct concept? | Yes — first-class, excluded from spending. Required by cash withdrawals and credit-card payments. | 2026-08-21 |
 | Does cash need special handling? | No. Cash is an ordinary opt-in account; reconciliation is a general account operation. | 2026-08-21 |
-| Is income categorised? | Not in v1. Income categories are a later version. | 2026-08-21 |
-| Do income and expenses share one set of categories? | **No — two separate sets that never meet.** Each carries its own protected *Uncategorised* and *Unaccounted*; identical names are safe because a picker is always scoped to the transaction's kind. Transfers never carry a category at all. v1 ships no income categories. Budgets attach to expense categories only. Linking an income category to an expense category, so a refund could offset its origin, is a much later idea. | 2026-08-28 |
+| Is income categorised? | **Yes, in v1.** Every income transaction carries an income category, a predefined income set ships, and Insights shows an income breakdown. *Revised — the original answer was "not in v1", which left income transactions unable to satisfy their own rule.* | 2026-09-01 |
+| Do income and expenses share one set of categories? | **No — two separate sets that never meet.** Each carries its own protected *Uncategorised* and *Unaccounted*; identical names are safe because a picker is always scoped to the transaction's kind. Transfers never carry a category at all. Budgets attach to expense categories only. Details in [features.md](./features.md#categories). | 2026-08-28 |
 | How is the app packaged and launched? | v1 is a local web app started with one command. Docker and desktop packaging are later delivery options; the architecture must not foreclose them. | 2026-08-21 |
 | The name vs. the AI-free scope | Name kept. AI is genuinely planned (receipt scanning, analysis) but sequenced after a trustworthy core — the principle [*Trustworthy before clever*](#p-trustworthy-before-clever). | 2026-08-21 |
 | Budget period and rollover | Fixed calendar month in v1, no rollover. User-selectable periods and optional rollover are later features. | 2026-08-21 |
-| Where do predefined categories come from? | One fixed, opinionated built-in set in v1. No first-run picker. The actual list is decided in [features.md](./features.md#categories). | 2026-08-21 |
+| Where do predefined categories come from? | One fixed, opinionated built-in set per side (expense and income) in v1. No first-run picker. Neither list is written down yet — see [features.md](./features.md#categories). | 2026-08-21 |
 | Which AI features, if any, justify leaving the machine? | **Local where it performs well, external where it does not — judged per feature.** Narrow image work such as receipt scanning is expected to run locally; conversational analysis is not. An external service is offered, never substituted silently, and needs the user's informed, revocable agreement. Local AI needs no gate: nothing leaves. No v1 scope change — AI is out of v1 entirely. | 2026-08-26 |
 | Does AI force us to abandon local-first? | No. The principle [*Local-first*](#p-local-first) relaxed from "nothing is transmitted" to proper local-first: local DB is authoritative, no feature may *require* the network, anything outbound is opt-in. v1 scope unchanged; a fully networked product was considered and rejected — it would cost the assumption [*Single user, single machine, no sync*](#a-single-user), the [persona](#persona), and the product's only structural differentiator. | 2026-08-21 |
 

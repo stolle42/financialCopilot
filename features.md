@@ -1,5 +1,6 @@
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-01
 # Features
+
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-01
 
 <a id="scope"></a>
 ## 1. Scope — version 1.0
@@ -35,8 +36,7 @@ Every transaction has a date, an amount, an account, and a description. There ar
 kinds:
 
 - **Expense** — must always carry an expense category.
-- **Income** — must always carry an income category. v1 offers only the protected ones, so income
-  stays undifferentiated in practice (see [Explicitly out of scope](#out-of-scope)).
+- **Income** — must always carry an income category.
 - **Transfer** — a movement between two of the user's own accounts, excluded from all spending
   figures. **Transfers never carry a category**, in this or any version.
 
@@ -67,22 +67,21 @@ This is the highest-risk feature in the product and is specified separately in
 
 **Expense categories and income categories are two separate sets.** They never mix in a picker, never
 appear in one list, and a category from one side can never be assigned to a transaction of the other.
-A sensible predefined set of *expense* categories ships so the app is useful on first launch, fully
-editable thereafter (create, rename, recolour, delete).
+**Both sets ship a sensible predefined set** so the app is useful on first launch, fully editable
+thereafter (create, rename, recolour, delete).
 
 Each set carries the same two **protected** categories: the app assigns them itself and forbids their
 deletion. Their names and colours stay editable — only their identity is fixed.
 
-v1 ships **no income categories** (see [Explicitly out of scope](#out-of-scope)).
-
 | Protected category | Meaning |
 | --- | --- |
-| **Uncategorised** | *"I have not sorted this yet."* A to-do. Transactions land here when their category is deleted. |
+| **Uncategorised** | *"I have not sorted this yet."* A to-do. Transactions land here when they arrive from an import without a category, and when their category is deleted. |
 | **Unaccounted** | *"I will never know where this money went, or where it came from."* A final answer, produced by reconciliation. |
 
 The two look alike and mean opposite things, on both sides. Keeping them separate preserves
-**"uncategorised = 0"** as a meaningful signal that an import has been fully processed — a signal
-**scoped to expenses**, since in v1 there are no income categories.
+**"uncategorised = 0"** as a meaningful signal that an import has been fully processed. Because both
+sets carry real categories, the signal is **meaningful on both sides**: an income transaction
+sitting in *Uncategorised* is a to-do the user can actually complete.
 
 The same name appearing on both sides is safe precisely because the sets never meet: a picker is
 always scoped to the transaction's kind, so the user is never offered two entries called
@@ -117,12 +116,15 @@ Income categories and protected categories cannot carry budgets (see [Categories
 A dedicated view over a **user-selected time period**, showing at minimum:
 
 - **Spending over time** — a line chart revealing trend.
-- **Category breakdown** — a pie or donut chart revealing proportion.
+- **Expense breakdown** — a pie or donut chart revealing proportion of spending by category.
+- **Income breakdown** — the same chart for income.
 - **Budget progress** — per-category bars of spent-against-limit, with a clear over-limit state.
+  Expenses only, since budgets attach to expense categories only (see [Budgets](#budgets)).
 
-*Unaccounted* appears in the breakdown like any other category, visually distinguished as a known
-unknown. A large Unaccounted share is useful information — it says the user's cash tracking is
-failing — and must never be hidden to make the chart look tidier.
+*Unaccounted* appears in its own side's breakdown like any other category, visually distinguished as a
+known unknown. A large expense *Unaccounted* share is useful information — it says the user's cash
+tracking is failing — and must never be hidden to make the chart look tidier. Income *Unaccounted* is
+where a reconciliation surplus surfaces, and is the only place the user ever sees it.
 
 Charts are read-only in v1. Drill-down from a chart into the underlying transactions is desirable
 and should be considered during UX design, but is not a v1 commitment.
@@ -147,7 +149,6 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 **Not in v1 (defensible later, deliberately excluded now):**
 
 - Multi-currency support.
-- **Income categories.** e.g. salary, refunds and gifts
 - **Linking an income category to an expense category** — so a refund could offset the category it
   came from. A much later idea, and only if a user actually wants it.
 - Investment, asset, or net-worth tracking.
