@@ -16,16 +16,17 @@ Two requirements follow directly from computing balances:
 
 - **Opening balance.** Each account records what it held on the day tracking began. Without it, every
   computed balance is wrong until the account's entire history has been imported — which will never
-  happen (see the assumption [*Historical data starts where the user starts*](./Vision.md#a-history-starts-where-user-starts)).
+  happen (see the assumption [*Historical data starts where the user starts*](./vision.md#a-history-starts-where-user-starts)).
 - **Reconcile to actual.** The user can state an account's real balance at any moment; the app books
   the difference as an adjustment (see [Categories](#categories)). This is what keeps computed balances honest when
   reality drifts from the ledger, and it is a general account operation, not a cash workaround.
 
 **Cash is an ordinary account, not a special type.** A user who wants cash detail creates a cash
 account and records ATM withdrawals as transfers into it. A user who does not can simply categorise the
-withdrawal as an expense. 
+withdrawal as an expense.
 
 Accounts are deliberately low-prominence in the UI — they exist as a check to make the numbers trustworthy, but might be completely ignored by some users.
+
 <a id="transactions"></a>
 ### 1.2 Transactions
 
@@ -58,7 +59,7 @@ a few hundred, and any group **unfolds** for vendors the user splits across cate
 the five-minute target is missed several times over.
 
 This is the highest-risk feature in the product and is specified separately in
-[CsvImport.md](./CsvImport.md).
+[csvImport.md](./csvImport.md).
 
 <a id="categories"></a>
 ### 1.3 Categories
@@ -71,7 +72,7 @@ editable thereafter (create, rename, recolour, delete).
 Each set carries the same two **protected** categories: the app assigns them itself and forbids their
 deletion. Their names and colours stay editable — only their identity is fixed.
 
- v1 ships **no income categories**  (see [Explicitly out of scope](#out-of-scope)).
+v1 ships **no income categories** (see [Explicitly out of scope](#out-of-scope)).
 
 | Protected category | Meaning |
 | --- | --- |
@@ -138,7 +139,7 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 - **Bank API / Open Banking / credential storage / screen scraping.** CSV is the boundary. This
   keeps the app free of credentials, licensing regimes, and per-bank integration maintenance.
 - **Multi-user access, shared ledgers, or holding another person's data.** One user, one machine, one
-  file. Sync between a single user's *own* devices is not forbidden by the principle [*Local-first*](./Vision.md#p-local-first), but it needs a
+  file. Sync between a single user's *own* devices is not forbidden by the principle [*Local-first*](./vision.md#p-local-first), but it needs a
   server and is not planned — treat it as a v3 question at the earliest.
 - **Telemetry or analytics of any kind.** No exceptions, opt-in or otherwise.
 
@@ -155,16 +156,16 @@ Listed so that "should we add…?" has an answer that does not require a meeting
   the extent of the v1 mobile commitment.
 - Recurring-transaction detection and forecasting.
 - Budget rollover, and budget periods other than monthly — see [Budgets](#budgets).
-- Rule-based auto-categorisation on import. Tempting, but it collides with the principle [*KISS is a product rule*](./Vision.md#p-kiss) and inflates
+- Rule-based auto-categorisation on import. Tempting, but it collides with the principle [*KISS is a product rule*](./vision.md#p-kiss) and inflates
   the riskiest feature in the product. Revisit once import is proven.
 - **Learned recall** — pre-filling a vendor's category from the user's own past decisions. Distinct
   from rule-based categorisation: a lookup filled in as a side effect of normal work, with nothing to
-  author. The first thing to add once import is proven; see [CsvImport.md](./CsvImport.md#deferred).
+  author. The first thing to add once import is proven; see [csvImport.md](./csvImport.md#deferred).
 - **AI features — deferred by design, not rejected.** Three are intended: **receipt scanning** that
   turns a photograph into a transaction, **analysis with recommendations** for improving the
   user's finances, and **transaction pre-categorisation** on import — local-only, suggestion-only,
   user-invoked, and held in reserve rather than planned: needed only if learned recall proves
-  insufficient. All are excluded from v1 under the principle [*Trustworthy before clever*](./Vision.md#p-trustworthy-before-clever) — the ledger must be provably
+  insufficient. All are excluded from v1 under the principle [*Trustworthy before clever*](./vision.md#p-trustworthy-before-clever) — the ledger must be provably
   trustworthy before anything probabilistic sits on top of it. The name *financialCopilot*
   anticipates these features rather than contradicting the v1 scope.
 
@@ -175,4 +176,4 @@ Listed so that "should we add…?" has an answer that does not require a meeting
   not. Only *conversational* analysis ("why was last month expensive?") clearly wants a capable
   model that probably won't run on-devices.
 - Docker images and desktop packaging. v1 is a local web app; these are later delivery options and
-  the architecture must not foreclose them (see the assumption [*The user can run a local application*](./Vision.md#a-local-application)).
+  the architecture must not foreclose them (see the assumption [*The user can run a local application*](./vision.md#a-local-application)).

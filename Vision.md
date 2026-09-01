@@ -1,10 +1,10 @@
 # Vision
 
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-08-21
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-08-31
 >
 > This document defines *why* the product exists and *where its edges are*. It deliberately contains
 > no technical decisions — those live in [techstack.md](./techstack.md) and
-> [Architecture.md](./Architecture.md). If a discussion about scope stalls, this document decides.
+> [architecture.md](./architecture.md). If a discussion about scope stalls, this document decides.
 
 ---
 
@@ -111,7 +111,7 @@ These conditions are non-negotiable for v1: a version that misses any of them ha
 Stated so they can be challenged rather than silently inherited.
 
 1. <a id="a-single-currency"></a>**Single currency.** All amounts share one currency, configured once. Multi-currency is not a
-   feature that can be retrofitted cheaply, so it is an accepted risk (see Risks.md).
+   feature that can be retrofitted cheaply, so it is an accepted risk (see [risks.md](./risks.md)).
 2. <a id="a-single-user"></a>**Single user, single machine, no sync.** No concurrent access. This removes an entire category
    of complexity and is the main reason the architecture can stay simple.
 3. <a id="a-bank-csv-export"></a>**The user's bank offers CSV export.** If it does not, the app is only usable in manual mode.
@@ -160,5 +160,5 @@ These block later documents and should be resolved before the phase noted.
 
 - [features.md](./features.md) — user stories and prioritisation
 - [techstack.md](./techstack.md) — technology decisions and rejected alternatives
-- [Architecture.md](./Architecture.md) — structure, domain model, data model
-- [Risks.md](./Risks.md) · [Roadmap.md](./Roadmap.md) · [effortEstimations.md](./effortEstimations.md)
+- [architecture.md](./architecture.md) — structure, domain model, data model
+- [risks.md](./risks.md) · [roadmap.md](./roadmap.md) · [effortEstimations.md](./effortEstimations.md)
