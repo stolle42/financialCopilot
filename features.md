@@ -6,8 +6,7 @@
 ## 1. Scope — version 1.0
 
 Five capabilities. Nothing here is optional; nothing not here is in v1. **This document decides what
-v1 contains**; [vision.md](./vision.md#principles) decides whether a thing belongs in the product at
-all, and its principles bind this list.
+v1 contains**, bound by the principles in [vision.md](./vision.md#principles).
 
 <a id="accounts"></a>
 ### 1.1 Accounts
@@ -22,7 +21,7 @@ Two requirements follow directly from computing balances:
   computed balance is wrong until the account's entire history has been imported — which will never
   happen (see the assumption [*Historical data starts where the user starts*](./vision.md#a-history-starts-where-user-starts)).
 - **Reconcile to actual.** The user can state an account's real balance at any moment; the app books
-  the difference as a transfer of the category "unacounted" (see [Categories](#categories)). This is what keeps computed balances honest when
+  the difference to the protected *Unaccounted* category (see [Categories](#categories)). This is what keeps computed balances honest when
   reality drifts from the ledger, and it is a general account operation, not a cash workaround.
 
 **Cash is an ordinary account, not a special type.** A user who wants cash detail creates a cash
