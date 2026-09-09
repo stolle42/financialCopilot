@@ -120,11 +120,10 @@ Shapes, in this diagram only:
 | `[( cylinder )]` | Persisted table |
 | `[ rectangle ]` | Screen that writes |
 | `[[ doubled sides ]]` | Read-only view |
-| `( rounded )` | Process that persists nothing of its own |
 
 ```mermaid
 flowchart TD
-    IMPORT("Import — commit a reviewed batch, see section 4")
+    IMPORT["Import review — commit a batch, see section 4"]
     MANUAL["Manual entry — category required"]
     RECON["Reconcile account — books the difference to Unaccounted"]
     LEDGER["Ledger — correct a transaction"]
