@@ -128,7 +128,7 @@ flowchart TD
     RECON["Reconcile account — books the difference to Unaccounted"]
     LEDGER["Ledger — correct a transaction"]
 
-    ACCADMIN["Accounts admin — opening balance, archive"]
+    ACCADMIN["Accounts admin — name, type, opening balance"]
     CATADMIN["Category admin — delete reassigns to Uncategorised"]
     BUDADMIN["Budget admin"]
 

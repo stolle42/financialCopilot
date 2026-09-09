@@ -1,6 +1,6 @@
 # Features
 
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-01
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-09
 
 <a id="scope"></a>
 ## 1. Scope — version 1.0
@@ -11,7 +11,7 @@ v1 contains**, bound by the principles in [vision.md](./vision.md#principles).
 <a id="accounts"></a>
 ### 1.1 Accounts
 
-Create, edit, and archive accounts, each with a name, type, and running balance derived from its
+Create and edit accounts, each with a name, type, and running balance derived from its
 transactions. *Balance is computed, never stored as a free-standing editable number* — a stored
 balance and a transaction list will eventually disagree, and then neither can be trusted.
 
@@ -150,6 +150,7 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 **Not in v1 (defensible later, deliberately excluded now):**
 
 - Multi-currency support.
+- **Archiving or deleting accounts.** An account the user stops using simply stays in the list — Revisit if dead accounts actually accumulate.
 - **Linking an income category to an expense category** — so a refund could offset the category it
   came from. A much later idea, and only if a user actually wants it.
 - Investment, asset, or net-worth tracking.

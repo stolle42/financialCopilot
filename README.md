@@ -1,6 +1,6 @@
 # financialCopilot
 
-A private, local-first finance tracker. Full statement of intent: [vision.md](./vision.md#1-one-liner).
+A private, local-first finance tracker. Full statement of intent: [vision.md](./vision.md).
 
 **Status: planning.** No code yet — this repository holds the documents below.
 
