@@ -71,6 +71,10 @@ needs a database fixture**, and a **third-party import under `src/domain/`**.
 `TRANSACTION` shows attributes, because that is where every hard decision sits. The rules these
 entities must obey are not drawable — they are listed in [§5 Invariants](#invariants).
 
+Labels describe **structure, not action**: there is no actor in this model. The user is the only thing
+that ever *does* anything, and is deliberately not an entity — there is exactly one of them
+([*Single user, single machine*](./vision.md#a-single-user)).
+
 ```mermaid
 erDiagram
     TRANSACTION {
@@ -84,14 +88,13 @@ erDiagram
         id income_category_id "income only"
     }
 
-    ACCOUNT ||--o{ TRANSACTION : "books"
-    ACCOUNT ||--o{ TRANSACTION : "receives — transfers only"
-    EXPENSE_CATEGORY ||--o{ TRANSACTION : "classifies — expenses only"
-    INCOME_CATEGORY ||--o{ TRANSACTION : "classifies — income only"
+    ACCOUNT ||--o{ TRANSACTION : "holds"
+    ACCOUNT ||--o{ TRANSACTION : "counter-account of — transfers only"
+    EXPENSE_CATEGORY ||--o{ TRANSACTION : "assigned to — expenses only"
+    INCOME_CATEGORY ||--o{ TRANSACTION : "assigned to — income only"
     EXPENSE_CATEGORY ||--o| BUDGET : "limited by"
-    MAPPING_PROFILE ||--o{ IMPORT_BATCH : "parsed"
+    MAPPING_PROFILE ||--o{ IMPORT_BATCH : "used by"
     IMPORT_BATCH ||--|{ STAGED_ROW : "holds"
-    STAGED_ROW |o--|| TRANSACTION : "becomes, on commit"
 ```
 
 Three consequences worth naming:
@@ -178,8 +181,8 @@ stateDiagram-v2
     Staged --> Staged : drop a duplicate
     Staged --> Committed : every row categorised
     Staged --> Discarded : user abandons the batch
-    Committed --> [*] : rows are now transactions
-    Discarded --> [*] : nothing entered the ledger
+    Committed --> [*] : rows become transactions, batch deleted
+    Discarded --> [*] : nothing entered the ledger, batch deleted
 ```
 
 Review is grouped **by vendor** and unfolds where a vendor spans categories — the difference between
@@ -200,6 +203,9 @@ Violating any of these is a bug, not a trade-off.
 5. **One write path per transaction kind.** Manual entry goes straight to the ledger; imported rows arrive only via a committed batch. There is no second route, and no optional detour.
 6. **Deleting a category never destroys transactions** — they are reassigned to that side's *Uncategorised* ([vision.md](./vision.md#open-questions)).
 7. **The domain layer imports nothing** and knows nothing about storage, HTTP, or the filesystem.
+8. **Committing or discarding a batch deletes it**, rows included. Staging is scratch space, never
+   history — so a transaction holds no link back to the import that created it, and **duplicate
+   detection compares incoming rows against committed transactions**, never against staged history.
 
 ---
 
@@ -211,4 +217,5 @@ Violating any of these is a bug, not a trade-off.
 | Two category tables rather than one table with a `kind` column | Makes the never-meet rule structurally impossible to break; accepted cost is two nullable FKs on `transactions` and a check constraint | 2026-09-09 |
 | This document names no technology | Keeps [techstack.md](./techstack.md) the single place a stack decision is made and justified | 2026-09-09 |
 | Import batch, not loose staged rows, is the commit unit | Gives commit, discard, and later undo a single obvious boundary | 2026-09-09 |
+| Staged rows are deleted on commit, not retained as provenance | Staging is scratch space; keeping it would add a second, permanent copy of every imported row for a v1 feature nobody asked for. Cost: import undo is not cheap, and would need its own mechanism if ever wanted | 2026-09-09 |
 | Layer membership is folder location, checked in CI | No per-file annotation to keep in sync; the rule is one sentence and machine-checkable from day one (see [Enforcing the boundary](#layout)) | 2026-09-09 |
