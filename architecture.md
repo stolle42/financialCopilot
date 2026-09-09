@@ -1,6 +1,6 @@
 # Architecture
 
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-03
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-09
 >
 > This document decides *how the product is put together* — layers, domain model, how data gets in,
 > and what may never be violated. An **overview**, not a specification.
@@ -9,29 +9,21 @@
 > **Deliberately stack-neutral.** "Relational store" means exactly that; the technology choice and its
 > rejected alternatives are made in [techstack.md](./techstack.md).
 
-**Shapes, used consistently in every diagram below:**
-
-| Shape | Meaning |
-| --- | --- |
-| `/ parallelogram /` | Input from outside the system |
-| `( rounded )` | Process — transforms data in transit, persists nothing |
-| `[( cylinder )]` | Persisted table |
-| `[ rectangle ]` | Screen that writes |
-| `[[ double bar ]]` | Read-only view |
-
-Arrow meaning is stated per diagram and never mixed within one.
+Each diagram states what its own boxes and arrows mean. No arrow
+carries two meanings within one diagram.
 
 ---
 
 <a id="layers"></a>
 ## 1. Layers
 
-Arrows mean **"depends on"** and point inward only. The domain layer imports nothing.
+**Boxes are layers**, not components or screens. **Arrows mean "depends on"** and point inward only —
+the domain layer imports nothing.
 
 ```mermaid
 flowchart TD
     UI["UI — screens, charts"]
-    APP["Application — use cases, ports"]
+    APP["Application — use cases, port interfaces"]
     DOM["Domain — entities, invariants"]
     INF["Infrastructure — relational store, CSV reader, filesystem, clock"]
 
@@ -43,18 +35,19 @@ flowchart TD
 
 Two constraints from [vision.md](./vision.md#principles) land here and nowhere else:
 
-- Anything that might one day become a network call is a **port** declared in Application and
-  implemented in Infrastructure from day one ([*Local-first*](./vision.md#p-local-first)).
-- Paths, ports, and the data file's location are **injected, never hardcoded**
-  ([*The user can run a local application*](./vision.md#a-local-application)).
+- Anything that might one day become a network call sits behind a **port** — an interface declared in
+  Application, implemented in Infrastructure — from day one ([*Local-first*](./vision.md#p-local-first)).
+- The data file's location, the HTTP port number, and every filesystem path are **injected at
+  startup**: one composition step decides them and hands them to everything else ([*The user can run a local application*](./vision.md#a-local-application)).
 
 ---
 
 <a id="domain-model"></a>
 ## 2. Domain model
 
-Arrows mean **relationship**; crow's feet mean cardinality. Only `TRANSACTION` shows attributes,
-because that is where every hard decision sits.
+**Boxes are entities.** Arrows mean **relationship**; crow's feet mean cardinality. Only
+`TRANSACTION` shows attributes, because that is where every hard decision sits. The rules these
+entities must obey are not drawable — they are listed in [§5 Invariants](#invariants).
 
 ```mermaid
 erDiagram
@@ -94,7 +87,15 @@ Three consequences worth naming:
 <a id="dataflow"></a>
 ## 3. Write paths and read models
 
-**Solid = writes. Dotted = reads.** Import is collapsed to one node; §4 expands it.
+**Solid arrows = writes. Dotted arrows = reads.** Import is collapsed to one node; §4 expands it.
+Shapes, in this diagram only:
+
+| Shape | Meaning |
+| --- | --- |
+| `[( cylinder )]` | Persisted table |
+| `[ rectangle ]` | Screen that writes |
+| `[[ doubled sides ]]` | Read-only view |
+| `( rounded )` | Process that persists nothing of its own |
 
 ```mermaid
 flowchart TD
@@ -145,7 +146,7 @@ they have their own screens rather than sitting inert in the middle of the flow.
 
 The highest-risk feature ([features.md](./features.md#transactions), detail in
 [csvImport.md](./csvImport.md)). A batch is the unit that gets committed or discarded — never a
-single row. Arrows mean **state transition**.
+single row. **Boxes are the states of one batch**; arrows mean **transition**.
 
 ```mermaid
 stateDiagram-v2
