@@ -40,6 +40,28 @@ Two constraints from [vision.md](./vision.md#principles) land here and nowhere e
 - The data file's location, the HTTP port number, and every filesystem path are **injected at
   startup**: one composition step decides them and hands them to everything else ([*The user can run a local application*](./vision.md#a-local-application)).
 
+<a id="layout"></a>
+### Enforcing the boundary
+
+A file's layer **is its folder** — nothing is annotated or configured per file:
+
+```text
+src/domain/          imports nothing of ours, and no third-party library
+src/application/     may import domain
+src/infrastructure/  may import application, domain
+src/ui/              may import application, domain
+src/<composition root>   may import everything — the single exception, because
+                         wiring is the one job that needs the concrete classes
+```
+
+**No module may import anything further out than itself.** Enforced by an import check in CI and —
+where the language allows it — by making each layer its own compilation unit, so a violation fails to
+build rather than merely failing a check. Which tool does this is a
+[techstack.md](./techstack.md) decision.
+
+Two symptoms that the boundary has leaked, both cheaper to notice than to lint: a **domain test that
+needs a database fixture**, and a **third-party import under `src/domain/`**.
+
 ---
 
 <a id="domain-model"></a>
@@ -186,6 +208,7 @@ Violating any of these is a bug, not a trade-off.
 
 | Decision | Rationale | Date |
 | --- | --- | --- |
-| Two category tables rather than one table with a `kind` column | Makes the never-meet rule structurally impossible to break; accepted cost is two nullable FKs on `transactions` and a check constraint | 2026-09-01 |
-| This document names no technology | Keeps [techstack.md](./techstack.md) the single place a stack decision is made and justified | 2026-09-01 |
-| Import batch, not loose staged rows, is the commit unit | Gives commit, discard, and later undo a single obvious boundary | 2026-09-01 |
+| Two category tables rather than one table with a `kind` column | Makes the never-meet rule structurally impossible to break; accepted cost is two nullable FKs on `transactions` and a check constraint | 2026-09-09 |
+| This document names no technology | Keeps [techstack.md](./techstack.md) the single place a stack decision is made and justified | 2026-09-09 |
+| Import batch, not loose staged rows, is the commit unit | Gives commit, discard, and later undo a single obvious boundary | 2026-09-09 |
+| Layer membership is folder location, checked in CI | No per-file annotation to keep in sync; the rule is one sentence and machine-checkable from day one (see [Enforcing the boundary](#layout)) | 2026-09-09 |
