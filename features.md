@@ -1,18 +1,17 @@
 # Features
 
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-01
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-09
 
 <a id="scope"></a>
 ## 1. Scope — version 1.0
 
 Five capabilities. Nothing here is optional; nothing not here is in v1. **This document decides what
-v1 contains**; [vision.md](./vision.md#principles) decides whether a thing belongs in the product at
-all, and its principles bind this list.
+v1 contains**, bound by the principles in [vision.md](./vision.md#principles).
 
 <a id="accounts"></a>
 ### 1.1 Accounts
 
-Create, edit, and archive accounts, each with a name, type, and running balance derived from its
+Create and edit accounts, each with a name, type, and running balance derived from its
 transactions. *Balance is computed, never stored as a free-standing editable number* — a stored
 balance and a transaction list will eventually disagree, and then neither can be trusted.
 
@@ -22,7 +21,7 @@ Two requirements follow directly from computing balances:
   computed balance is wrong until the account's entire history has been imported — which will never
   happen (see the assumption [*Historical data starts where the user starts*](./vision.md#a-history-starts-where-user-starts)).
 - **Reconcile to actual.** The user can state an account's real balance at any moment; the app books
-  the difference as a transfer of the category "unacounted" (see [Categories](#categories)). This is what keeps computed balances honest when
+  the difference to the protected *Unaccounted* category (see [Categories](#categories)). This is what keeps computed balances honest when
   reality drifts from the ledger, and it is a general account operation, not a cash workaround.
 
 **Cash is an ordinary account, not a special type.** A user who wants cash detail creates a cash
@@ -151,6 +150,7 @@ Listed so that "should we add…?" has an answer that does not require a meeting
 **Not in v1 (defensible later, deliberately excluded now):**
 
 - Multi-currency support.
+- **Archiving or deleting accounts.** An account the user stops using simply stays in the list — Revisit if dead accounts actually accumulate.
 - **Linking an income category to an expense category** — so a refund could offset the category it
   came from. A much later idea, and only if a user actually wants it.
 - Investment, asset, or net-worth tracking.

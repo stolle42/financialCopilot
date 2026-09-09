@@ -2,11 +2,9 @@
 
 > **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-01
 >
-> This document defines *why* the product exists and *where its edges are*. It deliberately contains
-> no technical decisions — those live in [techstack.md](./techstack.md) and
-> [architecture.md](./architecture.md). It decides whether something **belongs in the product at all**;
-> [features.md](./features.md#scope) decides whether something is **in v1**. Where a v1 item conflicts
-> with a principle or assumption here, this document wins.
+> This document decides *why* the product exists and *where its edges are* — whether a thing
+> **belongs in the product at all**. It deliberately contains no technical decisions.
+> Document roles and precedence: [README.md](./README.md).
 
 ---
 
@@ -155,12 +153,3 @@ These block later documents and should be resolved before the phase noted.
 | Where do predefined categories come from? | One fixed, opinionated built-in set per side (expense and income) in v1. No first-run picker. Neither list is written down yet — see [features.md](./features.md#categories). | 2026-08-21 |
 | Which AI features, if any, justify leaving the machine? | **Local where it performs well, external where it does not — judged per feature.** Narrow image work such as receipt scanning is expected to run locally; conversational analysis is not. An external service is offered, never substituted silently, and needs the user's informed, revocable agreement. Local AI needs no gate: nothing leaves. No v1 scope change — AI is out of v1 entirely. | 2026-08-26 |
 | Does AI force us to abandon local-first? | No. The principle [*Local-first*](#p-local-first) relaxed from "nothing is transmitted" to proper local-first: local DB is authoritative, no feature may *require* the network, anything outbound is opt-in. v1 scope unchanged; a fully networked product was considered and rejected — it would cost the assumption [*Single user, single machine, no sync*](#a-single-user), the [persona](#persona), and the product's only structural differentiator. | 2026-08-21 |
-
----
-
-## 8. Related documents
-
-- [features.md](./features.md) — user stories and prioritisation
-- [techstack.md](./techstack.md) — technology decisions and rejected alternatives
-- [architecture.md](./architecture.md) — structure, domain model, data model
-- [risks.md](./risks.md) · [roadmap.md](./roadmap.md) · [effortEstimations.md](./effortEstimations.md)
