@@ -1,0 +1,16 @@
+// Copy to src/application/wrong-direction.ts.
+//
+// The realistic violation: a layer that legitimately references OTHER layers
+// (application may see domain) reaching one it may not (infrastructure).
+//
+// This is the harder test. src/domain proved rejection works for a layer with
+// no references at all. This proves the rejection is per-reference rather than
+// per-layer — that declaring one reference does not open the door to all of them.
+//
+// EXPECTED: npx tsc -p src\application\tsconfig.json FAILS with TS6059/TS6307
+//           pointing at '../infrastructure/schema.ts', while the legitimate
+//           '../domain/transaction.ts' imports in the same project stay clean.
+
+import { SCHEMA } from '../infrastructure/schema.ts';
+
+export const leak = SCHEMA;

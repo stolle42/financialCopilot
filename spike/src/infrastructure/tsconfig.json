@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../../.types/infrastructure"
+  },
+  "include": ["**/*.ts"],
+  "references": [{ "path": "../domain" }, { "path": "../application" }]
+}

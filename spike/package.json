@@ -1,0 +1,27 @@
+{
+  "name": "financialcopilot-spike",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Throwaway spike proving the techstack decisions. Delete once it has done its job.",
+  "engines": {
+    "node": ">=24.12.0"
+  },
+  "scripts": {
+    "check": "tsc --build",
+    "check:clean": "tsc --build --clean",
+    "boundaries": "tsc -p src/domain/tsconfig.json && tsc -p src/application/tsconfig.json && tsc -p src/infrastructure/tsconfig.json && tsc -p src/ui/tsconfig.json && tsc -p src/root/tsconfig.json",
+    "test": "node --test",
+    "imports": "node scripts/check-imports.ts",
+    "start": "node src/root/main.ts",
+    "gate": "npm run check && npm run boundaries && npm test && npm run imports"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "@hono/node-server": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "@types/node": "^24.0.0"
+  }
+}

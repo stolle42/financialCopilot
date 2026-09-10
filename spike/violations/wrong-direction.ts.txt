@@ -1,0 +1,15 @@
+// Copy this file to src/domain/wrong-direction.ts to test the layer boundary.
+//
+// The domain layer is reaching outward into infrastructure. This is the exact
+// violation architecture.md says must "fail to build rather than merely failing
+// a check", and invariant 7 says is impossible.
+//
+// EXPECTED: `npm run check` fails with a TypeScript error along the lines of
+//   TS6059: File '.../src/infrastructure/schema.ts' is not under 'rootDir'
+//   TS6307: File '.../schema.ts' is not listed within the file list of project
+//
+// Then delete the file again.
+
+import { SCHEMA } from '../infrastructure/schema.ts';
+
+export const leak = SCHEMA;

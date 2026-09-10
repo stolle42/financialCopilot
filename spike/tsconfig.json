@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./src/domain" },
+    { "path": "./src/application" },
+    { "path": "./src/infrastructure" },
+    { "path": "./src/ui" },
+    { "path": "./src/root" }
+  ]
+}

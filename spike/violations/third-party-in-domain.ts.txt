@@ -1,0 +1,15 @@
+// Copy this file to src/domain/third-party-in-domain.ts to test domain purity.
+//
+// This is the violation TypeScript project references CANNOT catch: 'hono'
+// resolves through node_modules, which sits outside the layer graph entirely.
+// The compiler is perfectly happy. Invariant 7 would quietly rot.
+//
+// EXPECTED: `npm run check` PASSES (this is the point — references miss it)
+//           `npm run imports` FAILS with:
+//             domain must import nothing external, found "hono"
+//
+// Then delete the file again.
+
+import { Hono } from 'hono';
+
+export const leak = Hono;
