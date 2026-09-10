@@ -81,6 +81,7 @@ Not preferences — things that follow from the table above and will bite otherw
 | Hono | Fastify, `node:http` | More concepts for unneeded performance / hand-rolling multipart parsing |
 | Chart.js | Hand-written SVG | Runner-up. Loses on axis intervals, label collisions and tooltips — and "how much exactly?" must be answerable |
 | Chart.js | D3, ECharts, Plotly | A toolkit rather than a chart library / far more API than four charts need |
+| TypeScript 5.9 | TypeScript 7 | npm's `latest`, but the compiler API moved to `typescript/unstable/*`, which breaks the import checker's `preProcessFile` call — and a days-old whole-compiler rewrite is a poor bet on project references, which enforce the layer boundary. Its speed gain is invisible at this size. Revisit when that API stabilises |
 | `node:test` | Vitest | Built on Vite. Reconsider in phase 2 — once Vite is present for React anyway, its main objection is gone |
 | `node:test` | Jest, Mocha | Needs a transform for TypeScript / two dependencies for what ships free |
 | `node:sqlite` | `better-sqlite3` | Native compilation: a toolchain on Windows and a rebuild for desktop packaging |
@@ -108,7 +109,6 @@ Untested: Chart.js, CSV import, a second migration, and **everything in phase 2*
 | Question | Blocks |
 | --- | --- |
 | Does Vite bundle `src/domain/` for the browser without complaint? The shared-validation argument rests on it | Phase 2 start — worth a five-minute spike then |
-| **TypeScript 7** is npm's `latest` — the native compiler rewrite, recent. This stack pins 5.9. Do project references behave identically? | Settle before v1, not mid-build |
 | Chart.js or Recharts once React arrives | Phase 2 |
 | **Will anyone else work in this repo?** Every choice assumed a solo developer. Nothing reverses for a team, but onboarding cost would outrank framework count and CI would become primary enforcement | The ESLint call; where the gate runs |
 | Where the gate runs: pre-commit hook, GitHub Action, or both | Nothing yet |
