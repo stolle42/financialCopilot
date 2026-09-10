@@ -1,6 +1,6 @@
 # Architecture
 
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-09
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-10
 >
 > This document decides *how the product is put together* — layers, domain model, how data gets in,
 > and what may never be violated. An **overview**, not a specification.
@@ -168,9 +168,9 @@ they have their own screens rather than sitting inert in the middle of the flow.
 <a id="import"></a>
 ## 4. Import batch lifecycle
 
-The highest-risk feature ([features.md](./features.md#transactions), detail in
-[csvImport.md](./csvImport.md)). A batch is the unit that gets committed or discarded — never a
-single row. **Boxes are the states of one batch**; arrows mean **transition**.
+The highest-risk feature ([features.md](./features.md#transactions)). A batch is the unit that gets
+committed or discarded — never a single row. **Boxes are the states of one batch**; arrows mean
+**transition**.
 
 ```mermaid
 stateDiagram-v2

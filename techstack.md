@@ -110,5 +110,4 @@ Untested: Chart.js, CSV import, a second migration, and **everything in phase 2*
 | --- | --- |
 | Does Vite bundle `src/domain/` for the browser without complaint? The shared-validation argument rests on it | Phase 2 start — worth a five-minute spike then |
 | Chart.js or Recharts once React arrives | Phase 2 |
-| **Will anyone else work in this repo?** Every choice assumed a solo developer. Nothing reverses for a team, but onboarding cost would outrank framework count and CI would become primary enforcement | The ESLint call; where the gate runs |
 | Where the gate runs: pre-commit hook, GitHub Action, or both | Nothing yet |
