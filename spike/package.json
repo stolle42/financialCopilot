@@ -1,0 +1,14 @@
+{
+  "name": "spike",
+  "version": "1.0.0",
+  "description": "throwaway spike",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "simon",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {"vite": "^8.3.0", "typescript": "^5.9.0"},
+  "private":true
+}
