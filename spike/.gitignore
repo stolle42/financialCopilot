@@ -1,6 +1,0 @@
-node_modules/
-.types/
-*.db
-*.db-journal
-*.tsbuildinfo
-package-lock.json
