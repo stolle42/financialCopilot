@@ -24,7 +24,8 @@ Every dependency below is open source, as required by [*No lock-in*](./vision.md
 | Charts | Recharts |
 | Store | SQLite — one file on the user's machine |
 | DB access | `better-sqlite3` + hand-written SQL |
-| Tests | `node:test`, one script per layer |
+| Tests | `node:test`, one script per layer · no UI tests ([ADR-012](#adr-012)) |
+| Module paths | package.json `imports` (`#domain/*`), not tsconfig `paths` |
 | Layer enforcement | `eslint-plugin-boundaries` |
 | Migrations | Numbered files on `PRAGMA user_version`, backup first |
 | CSV | `csv-parse`, decoded via built-in `TextDecoder` |
@@ -89,18 +90,12 @@ it supports the check constraint that
 [architecture.md §2](./architecture.md#domain-model) needs for "exactly one category column, matching
 `kind`".
 
-*Rejected — Supabase*, on four counts:
-
-1. Hosted Postgres by default puts the data on a third party's machine, contradicting
-   [*Local-first*](./vision.md#p-local-first), where the local DB is the **sole** source of truth.
-2. Auth and row-level security solve multi-tenancy — a problem removed by
-   [*Single user, single machine, no sync*](./vision.md#a-single-user).
-3. Rows in a hosted database are not a portable file.
-4. Self-hosting it means roughly seven Docker containers, missing the *under 10 minutes to first
-   chart* criterion and the one-command launch of ADR-001.
-
-*Rejected — local PostgreSQL:* also fails the 10-minute criterion; the user would install and run a
-database server.
+*Rejected — Supabase.* Hosted Postgres puts the data on a third party's machine, contradicting
+[*Local-first*](./vision.md#p-local-first); its auth and row-level security solve a multi-tenancy
+problem removed by [*Single user, single machine*](./vision.md#a-single-user); hosted rows are not a
+portable file; and self-hosting means ~seven Docker containers, missing both the 10-minute criterion
+and the one-command launch. *Local PostgreSQL* fails that same criterion — the user would install and
+run a database server.
 
 *Costs accepted:*
 
@@ -108,8 +103,7 @@ database server.
   object in the domain. Floats never touch money.
 - `STRICT` tables everywhere, because SQLite's default typing does not enforce columns.
 - `PRAGMA foreign_keys = ON` on every connection — off by default.
-- **Migrations are ours to own.** No ops team exists, so the app migrates the user's file at startup
-  and must never corrupt it. Approach still open — see §3.
+- **Migrations are ours to own** — no ops team, and the file must never corrupt ([ADR-008](#adr-008)).
 
 <a id="adr-004"></a>
 ### ADR-004 — `better-sqlite3` with hand-written SQL
@@ -120,10 +114,9 @@ Zero abstraction, fewest dependencies, and nothing generated that could drift in
 the leak that [architecture.md](./architecture.md#layout) names as a symptom worth watching for.
 Synchronous API, which is a non-issue with one user and simplifies the code considerably.
 
-*Rejected:* Kysely and Drizzle (type-safe, but their inferred types invite use as domain types);
-Prisma (generated models become de facto domain types, its engine binary complicates the later
-packaging that [features.md](./features.md#out-of-scope) keeps open, and SQLite is its weakest
-target).
+*Rejected:* Kysely and Drizzle (inferred types invite use as domain types); Prisma (same, plus an
+engine binary complicating the later packaging [features.md](./features.md#out-of-scope) keeps open,
+and SQLite is its weakest target).
 
 *Costs accepted:*
 
@@ -142,11 +135,10 @@ target).
 v1 is `next build` + `next start` with Next.js standalone output, so it runs with no network at all.
 Docker and desktop packaging are later delivery options, not v1.
 
-*Rejected — Vercel*, on two counts. Practically, serverless has no persistent writable filesystem, so
-the SQLite file of ADR-003 cannot live there. More fundamentally, deploying the ledger anywhere would
-recreate the third row of the [problem table](./vision.md#2-the-problem) — the commercial app that
-treats a user's financial history as a product input. **There is no server-side component of this
-product.**
+*Rejected — Vercel.* Serverless has no persistent writable filesystem, so the SQLite file cannot live
+there. More fundamentally, deploying the ledger would recreate the third row of the
+[problem table](./vision.md#2-the-problem) — the app that treats a user's financial history as a
+product input. **There is no server-side component of this product.**
 
 <a id="adr-006"></a>
 ### ADR-006 — `node:test` as the test runner
@@ -157,15 +149,13 @@ Node's built-in runner, for unit and integration tests. Zero dependencies, which
 to [*KISS*](./vision.md#p-kiss) and [*No lock-in*](./vision.md#p-no-lock-in) available. Coverage comes
 from Node's own instrumentation; no third-party tool.
 
-*Rejected:* Vitest (best watch-mode speed, but a second build toolchain beside Next.js and path
-aliases declared twice); Jest (most mature, but slower feedback and `next/jest` couples test setup to
-the framework the domain layer must not know about).
+*Rejected:* Vitest (best watch speed, but a second build toolchain beside Next.js); Jest (mature, but
+slower, and `next/jest` couples test setup to the framework the domain must not know about).
 
-*Why the usual objection barely applies here:* `node:test`'s weak mocking costs little in this
-codebase, because [architecture.md §1](./architecture.md#layers) already requires every outside
-dependency to sit behind a **port**. Tests substitute hand-written in-memory fakes of those
-interfaces — they never need to monkey-patch a module. Module-level mocking is in fact the thing to
-avoid: it is how a leaked boundary gets tested *around* instead of fixed.
+*Why the usual objection barely applies:* weak mocking costs little here, because
+[architecture.md §1](./architecture.md#layers) already puts every outside dependency behind a
+**port** — tests substitute hand-written fakes rather than monkey-patching modules, which is the
+thing to avoid anyway: it tests *around* a leaked boundary instead of fixing it.
 
 *Costs accepted:*
 
@@ -174,8 +164,7 @@ avoid: it is how a leaked boundary gets tested *around* instead of fixed.
 - **No test-project concept.** Per-layer isolation — so a domain test cannot reach
   `src/infrastructure` — is done with separate npm scripts globbing separate directories, not runner
   config.
-- **TypeScript support is version-dependent**, which promotes the Node version from housekeeping to a
-  hard pin — see [§3](#open-questions).
+- **TypeScript support is version-dependent**, which makes the Node version a hard pin ([ADR-011](#adr-011)).
 - Sparser examples than either alternative; more of the setup is ours.
 
 <a id="adr-007"></a>
@@ -192,16 +181,14 @@ Chosen over stricter options because a forbidden import raises an **editor error
 the boundary gets fixed while the design is still in the developer's head, rather than after code has
 been built on top of it.
 
-*Rejected:* `dependency-cruiser` (clearer messages and free dependency graphs, but CI-only, so no
-feedback while typing); ESLint `no-restricted-paths` (no new dependency, but clunkier config per layer
-and vaguer errors).
+*Rejected:* `dependency-cruiser` (clearer messages and free dependency graphs, but CI-only); ESLint
+`no-restricted-paths` (no new dependency, but clunkier config and vaguer errors).
 
-*Rejected for now — TypeScript project references.* The one option that makes a violation fail the
-*build*, which architecture.md states as its preference, so this is a real gap. It was rejected
-because `next build` type-checks against the single root `tsconfig.json` that Next.js manages itself
-rather than running `tsc -b`, so composite projects fight the framework and the guarantee still
-arrives as a separate CI step. ADR-006 compounds it: type-stripped tests are not type-checked at all.
-Revisit if a boundary violation ever reaches `main`.
+*Rejected for now — TypeScript project references.* The only option that fails the *build*, which
+architecture.md states as its preference, so this is a real gap. But `next build` type-checks against
+the root `tsconfig.json` Next.js manages itself, so composite projects fight the framework and the
+guarantee still arrives as a CI step; ADR-006 compounds it, since type-stripped tests are not
+type-checked at all. **Revisit if a boundary violation reaches `main`.**
 
 *Costs accepted:*
 
@@ -232,12 +219,10 @@ copy, and the user has no backup of their own. Transactional DDL protects agains
 *fails*; nothing else protects against one that *succeeds and is wrong*, which is the likelier
 failure. Bounded disk use, one obvious file to restore from.
 
-*Rejected:* a migration library such as umzug (a dependency for forty lines, built for operator-run
-CLIs against managed databases rather than silent startup migration of a user's file, and needing a
-`better-sqlite3` storage adapter regardless); declarative diffing such as Atlas (SQLite's limited
-`ALTER TABLE` means auto-generated create-copy-drop-rename rebuilds against irreplaceable data —
-cleverness that [*Trustworthy before clever*](./vision.md#p-trustworthy-before-clever) sequences last
-— plus a Go binary to ship).
+*Rejected:* umzug and similar (a dependency for forty lines, built for operator-run CLIs rather than
+silent startup migration); Atlas-style declarative diffing (SQLite's weak `ALTER TABLE` forces
+auto-generated table rebuilds against irreplaceable data — cleverness
+[*Trustworthy before clever*](./vision.md#p-trustworthy-before-clever) sequences last).
 
 *Costs accepted:*
 
@@ -258,7 +243,7 @@ cleverness that [*Trustworthy before clever*](./vision.md#p-trustworthy-before-c
 **Decoding and parsing are two steps.** Bytes are decoded to a string with Node's built-in
 `TextDecoder`, which covers `windows-1252`, the ISO-8859 family and UTF-16LE, and strips BOMs by
 default. No dependency is needed for this — `iconv-lite` was considered and is unnecessary. This
-assumes an official full-ICU Node build, which the pin in [§3](#open-questions) must guarantee.
+assumes an official full-ICU Node build, which the pin in [ADR-011](#adr-011) guarantees.
 
 The decoded string is parsed by **`csv-parse`**, chosen for the options that match real bank exports:
 `from_line` to skip multi-line preambles, `bom`, and `relax_*` for ragged rows. Its synchronous API
@@ -270,11 +255,9 @@ assumption [*Bank CSV formats vary unpredictably*](./vision.md#a-csv-formats-var
 exactly as it does to everything else: chosen once per bank, then remembered, never guessed. Detail
 belongs in [csvImport.md](./csvImport.md).
 
-*Rejected:* PapaParse (most widely used and correct, but browser-first, coarser error reporting, and
-types from DefinitelyTyped rather than the package); hand-rolling (zero dependencies, but escaped
-quotes, quoted delimiters and quoted newlines are easy to get subtly wrong — and the
-zero-dependency budget is better spent where the actual risk is, in mapping and duplicate detection,
-which no library solves).
+*Rejected:* PapaParse (correct and widely used, but browser-first with coarser errors); hand-rolling
+(escaped quotes, quoted delimiters and quoted newlines are easy to get subtly wrong, and the
+zero-dependency budget is better spent on mapping and dedup, which no library solves).
 
 *Costs accepted:*
 
@@ -305,16 +288,19 @@ third-party library. A transaction's date is a domain concept, so no date librar
   `MM/dd/yyyy`, …), each a small parser — not a free-form format string. A dropdown is also better UX
   than a format field. Detail belongs in [csvImport.md](./csvImport.md).
 
-*Rejected:* `date-fns` at the edges (gains arbitrary format-string parsing, but that advantage
-disappears against the fixed list above, and it leaves two date vocabularies — ISO strings inside,
-`Date` timestamps outside — with drift possible at every crossing).
+*Rejected:* `date-fns` at the edges (gains format-string parsing, but the fixed list above removes
+that advantage, and it leaves two date vocabularies with drift possible at every crossing).
 
-*Rejected for now — `Temporal`.* `Temporal.PlainDate` is exactly this domain concept, and as a
-language builtin would not even breach domain purity. Verified unavailable on 2026-09-15: absent from
-Node 22, and MDN still lists it as *Limited availability, not Baseline* in browsers. Using it today
-means `temporal-polyfill` — a third-party dependency in the one layer that forbids them. **Revisit
-when Node ships it**; a `LocalDate` value object is a far easier thing to reimplement on top of
-`Temporal` than `Date` objects scattered through the UI would be.
+*Rejected for now — `Temporal`.* `PlainDate` and `PlainYearMonth` are exactly these domain concepts.
+Reconsidered 2026-09-15, still declined on cost/benefit rather than purity — recorded so the revisit
+need not repeat the work. Native `Temporal` is a builtin and would breach nothing, but is absent from
+Node 22 and not Baseline in browsers. `temporal-polyfill` (v1.0.5, MIT, 33 KB gzipped) has a
+`./global` entrypoint patching `globalThis` from the composition root, so it would need **no** domain
+import and no exception — that is the mechanism to use on revisit. Declined because v1 needs only
+month increment, days-in-month, comparison and range containment, all trivial on ISO strings, while
+Temporal's strengths (month-end clamping, flexible periods) belong to deferred features that will
+likely postdate native support. Deciding cost: the polyfill makes the domain's runtime prerequisite
+implicit. **Revisit when Node ships it**, or earlier if a deferred period feature arrives.
 
 *Costs accepted:*
 
@@ -339,15 +325,46 @@ every umlaut. Pinned in two places, `engines` and `.nvmrc`, so CI and developers
 **npm**, because every other decision in this document favours fewer moving parts, and it needs no
 installation.
 
-*Rejected:* Node 22 LTS (verified working for `node:test`, `TextDecoder` and native TypeScript, but
-maintenance-only with EOL in April 2027 — a forced migration during v1's life); Node 26 Current
-(Node's own guidance is that production uses LTS, and native-module prebuilds lag Current releases —
-the wrong risk to take with a native SQLite driver); pnpm (its strict resolution would usefully block
-undeclared transitive imports, a dependency-level echo of ADR-007, but that gain is smaller than the
-added toolchain friction on a single-developer project); yarn (no advantage here).
+*Rejected:* Node 22 LTS (works, but maintenance-only with EOL April 2027 — a forced migration during
+v1); Node 26 Current (Node's guidance is that production uses LTS, and native-module prebuilds lag
+Current); pnpm (strict resolution would usefully block undeclared transitive imports, but that gain
+is smaller than the toolchain friction on a solo project); yarn (no advantage here).
 
 *Verified on 2026-09-15, not assumed:* a `.ts` file runs unflagged, `node --test` is present, and
 `new TextDecoder('windows-1252')` decodes correctly.
+
+<a id="adr-012"></a>
+### ADR-012 — No automated UI tests; thin UI and a manual smoke checklist
+
+**Accepted** · 2026-09-15
+
+No browser-based or component-level test tooling. `node:test` (ADR-006) covers domain, application
+and infrastructure; the UI layer is verified by hand.
+
+*Rejected:* Playwright over the import flow (would cover the riskiest feature end-to-end, but adds
+browser downloads and a slow second suite); Playwright plus happy-dom component tests (fast feedback,
+but React testing libraries expect Jest/Vitest globals, partly reopening ADR-006).
+
+**Two conditions make this defensible, and both are now load-bearing rather than stylistic:**
+
+1. **The UI must contain no logic.** Components are adapters over use cases — nothing else. Any rule
+   that creeps into a component becomes untested rule. This was already the intent of
+   [architecture.md §1](./architecture.md#layers); it is now the thing standing between the riskiest
+   feature and zero coverage.
+2. **Import-flow logic belongs in Application, not in React state.** Vendor grouping, unfold
+   decisions, duplicate flagging and commit/discard are pure functions over staged rows
+   ([architecture.md §4](./architecture.md#import)), so `node:test` can cover all of them. What stays
+   untested is then only rendering.
+
+**The manual checks need a written script, or they decay into ad-hoc clicking.** It already exists:
+the four measurable criteria in [vision.md §5](./vision.md#5-what-success-looks-like) are an
+acceptance test — two of them are stopwatch measurements that can only be taken by hand. Run them
+before each release.
+
+*Cost accepted, stated plainly:* the import review screen — vendor grouping with selective
+unfolding — is the most intricate UI in the product and sits on the highest-risk feature, with no
+regression net. **Revisit trigger:** the second time a bug reaches manual testing in the import flow,
+add Playwright for that flow alone.
 
 ---
 
@@ -355,3 +372,23 @@ added toolchain friction on a single-developer project); yarn (no advantage here
 ## 3. Open questions
 
 **None open.** Every question raised so far has been decided.
+
+<a id="risks"></a>
+## 4. Integration risk to prove before feature code
+
+One join in this stack is unproven, and both halves were sound in isolation:
+**`better-sqlite3` inside Next.js** (ADR-004 × ADR-001). Three known frictions —
+
+- the native module must be declared server-external, or Next attempts to bundle the `.node` binary;
+- dev-mode module re-evaluation fights the module-level singleton connection, leaking connections
+  across hot reloads;
+- `output: 'standalone'` traces dependencies automatically but can miss native binaries — breaking
+  precisely the production path ADR-005 depends on.
+
+None is fatal; all are cheaper to discover in a one-hour spike than during feature work.
+
+Separately, and verified on 2026-09-15: **use the package.json `imports` field (`#domain/*`), not
+tsconfig `paths` (`@/*`)**. Node does not read `tsconfig.json`, so `@/*` fails under `node --test`
+while `#domain/*` resolves natively and TypeScript understands it too. Next.js scaffolds `@/*` by
+default, so this is a day-one correction. It also makes a layer crossing visible at the import site,
+complementing ADR-007.
