@@ -6,15 +6,21 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "check": "tsc",
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "keywords": [],
   "author": "simon",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
-    "vite": "^8.3.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.3.0"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
 }
