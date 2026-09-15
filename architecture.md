@@ -1,6 +1,6 @@
 # Architecture
 
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-10
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-15
 >
 > This document decides *how the product is put together* — layers, domain model, how data gets in,
 > and what may never be violated. An **overview**, not a specification.
@@ -218,3 +218,4 @@ Violating any of these is a bug, not a trade-off.
 | Import batch, not loose staged rows, is the commit unit | Gives commit, discard, and later undo a single obvious boundary | 2026-09-09 |
 | Staged rows are deleted on commit, not retained as provenance | Staging is scratch space; keeping it would add a second, permanent copy of every imported row for a v1 feature nobody asked for. Cost: import undo is not cheap, and would need its own mechanism if ever wanted | 2026-09-09 |
 | Layer membership is folder location, checked in CI | No per-file annotation to keep in sync; the rule is one sentence and machine-checkable from day one (see [Enforcing the boundary](#layout)) | 2026-09-09 |
+| `src/domain/` imports no third-party library | A **tripwire, not a goal.** What must stay out is infrastructure knowledge — a store's row type, an HTTP client, a timezone-aware clock — which is expensive to detect directly. Banning the whole category keeps the rule to one machine-checkable sentence; the accepted cost is that harmless value-type libraries are excluded too. Reinforced by the domain being the only layer that cannot be swapped: its release schedule should be ours alone. **Language builtins are not third-party** and are exempt, so the domain may use `Intl`, `Map` or a future `Temporal` freely | 2026-09-15 |
