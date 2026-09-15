@@ -1,6 +1,6 @@
 # Features
 
-> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-09
+> **Status:** Draft · **Owner:** simon · **Last updated:** 2026-09-10
 
 <a id="scope"></a>
 ## 1. Scope — version 1.0
@@ -60,8 +60,7 @@ user confirms them. Review groups rows **by vendor** so a month is a few dozen d
 a few hundred, and any group **unfolds** for vendors the user splits across categories. Without this
 the five-minute target is missed several times over.
 
-This is the highest-risk feature in the product and is specified separately in
-[csvImport.md](./csvImport.md).
+This is the highest-risk feature in the product.
 
 <a id="categories"></a>
 ### 1.3 Categories
@@ -163,7 +162,7 @@ Listed so that "should we add…?" has an answer that does not require a meeting
   the riskiest feature in the product. Revisit once import is proven.
 - **Learned recall** — pre-filling a vendor's category from the user's own past decisions. Distinct
   from rule-based categorisation: a lookup filled in as a side effect of normal work, with nothing to
-  author. The first thing to add once import is proven; see [csvImport.md](./csvImport.md#deferred).
+  author. The first thing to add once import is proven.
 - **AI features — deferred by design, not rejected.** Three are intended: **receipt scanning** that
   turns a photograph into a transaction, **analysis with recommendations** for improving the
   user's finances, and **transaction pre-categorisation** on import — local-only, suggestion-only,

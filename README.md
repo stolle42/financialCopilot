@@ -13,7 +13,7 @@ A private, local-first finance tracker. Full statement of intent: [vision.md](./
 | [vision.md](./vision.md) | Why the product exists, who it is for, where its edges are |
 | [features.md](./features.md) | What version 1 contains |
 | [architecture.md](./architecture.md) | How the product is put together — layers, domain model, invariants |
-| [techstack.md](./techstack.md) | Which technologies, and which were rejected — *not written yet* |
+| [techstack.md](./techstack.md) | Which technologies, and which were rejected |
 | [csvImport.md](./csvImport.md) | CSV import in detail, the highest-risk feature — *not written yet* |
 | [risks.md](./risks.md) · [roadmap.md](./roadmap.md) · [effortEstimations.md](./effortEstimations.md) | Record state rather than decide it — *not written yet* |
 
